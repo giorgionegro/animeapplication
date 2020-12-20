@@ -4,12 +4,8 @@ import android.app.Service;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Binder;
-
-import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
-
-import java.io.File;
 
 public class BackgroundService extends Service {
 
@@ -30,13 +26,13 @@ public class BackgroundService extends Service {
         intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent1.putExtra("com.dv.get.ACTION_LIST_PATH", (String) intent.getExtras().get("com.dv.get.ACTION_LIST_PATH")); // destination directory (default "Settings - Downloading - Folder for files")
         intent1.putExtra("com.android.extra.filename", (String) intent.getExtras().get("com.android.extra.filename"));
+        intent.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
         try {
 
             startActivity(intent1);
             Intent startMain = new Intent(Intent.ACTION_MAIN);
-            startMain.addCategory(Intent.CATEGORY_HOME);
-            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(startMain);
+
+
             System.out.println("starting service");
 
         } catch (ActivityNotFoundException e) {

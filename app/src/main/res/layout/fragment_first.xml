@@ -30,7 +30,7 @@
 
             <LinearLayout
                 android:configChanges="uiMode"
-                android:id="@+id/layyout"
+                android:id="@+id/elencoepisodi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"

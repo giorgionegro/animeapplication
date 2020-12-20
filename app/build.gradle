@@ -22,7 +22,10 @@ android {
     }
 }
 
+
+
 dependencies {
+
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.0'
@@ -43,7 +46,7 @@ dependencies {
     implementation 'com.mindorks.android:prdownloader:0.6.0'
     implementation 'com.amitshekhar.android:jackson-android-networking:1.0.2'
     implementation 'com.amitshekhar.android:android-networking:1.0.2'
-
+    //apply plugin: "androidx.navigation.safeargs"
 
     // For developers using the Android Support Library
     implementation 'pub.devrel:easypermissions:2.0.1'

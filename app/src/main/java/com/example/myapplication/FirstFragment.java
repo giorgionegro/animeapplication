@@ -2,35 +2,38 @@ package com.example.myapplication;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.DownloadManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -40,31 +43,28 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.androidnetworking.AndroidNetworking;
-import com.androidnetworking.common.Priority;
-import com.androidnetworking.error.ANError;
-import com.androidnetworking.interfaces.DownloadListener;
-import com.androidnetworking.interfaces.DownloadProgressListener;
 import com.downloader.PRDownloader;
 import com.downloader.PRDownloaderConfig;
-
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.text.DecimalFormat;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class FirstFragment extends Fragment implements SearchView.OnQueryTextListener {
@@ -74,9 +74,9 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     final String port = "5000";
-    final String server = "http://192.168.0.111:";
+    final String server = "http://192.168.1.195:";
     final List<List<String>> sresult = new ArrayList<>();
-    final int maxdownload = 3;
+    final int Width = 250;
     private final buttonlisener buttonl = new buttonlisener();
     public List<String> episodelist;
     String currentanime;
@@ -85,8 +85,8 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     LinearLayout ll;
     FileInputStream fi;
     ObjectInputStream oi;
-    int prev = 0;
-    int downloadnumber = 0;
+    bitmaplist listabitm;
+    DatabaseHelper dbh;
 
     {
 
@@ -114,6 +114,24 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
     ) {
 
+        listabitm = new bitmaplist();
+        dbh = new DatabaseHelper(getContext());
+        new Thread() {
+            @Override
+            public void run() {
+
+
+                try {
+                    listabitm = dbh.getAllbitmaps();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+
+        }.start();
+
         verifyStoragePermissions(getActivity());
         AndroidNetworking.initialize(getContext());
         return inflater.inflate(R.layout.fragment_first, container, false);
@@ -125,7 +143,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             String testurl = sresult.get(Integer.parseInt((String) v.getTag())).get(0);
             new Details(sresult.get(Integer.parseInt((String) v.getTag())).get(0)).execute();
             Button bu = (Button) v;
-            currentanime = bu.getText().toString().replace("\"", "");
+            currentanime = bu.getText().toString().replace("\"", "").replaceAll("[^a-zA-Z0-9]", " ");
 
         } catch (Exception e) {
             System.out.println(e.getStackTrace());
@@ -136,6 +154,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         SearchView search = view.findViewWithTag("ricerca");
+        search.setOnQueryTextListener(this);
         this.view = view;
         ll = view.findViewWithTag("wedr");
         search.setOnQueryTextListener(this);
@@ -153,7 +172,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         if (!file.exists()) {
             try {
 
-                //file.createNewFile();
+                file.createNewFile();
 
                 System.out.println("file created");
             } catch (Exception e) {
@@ -197,16 +216,16 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     @Override
     public boolean onQueryTextSubmit(String s) {
         sresult.clear();
-        System.out.println(ll);
+        System.out.println(ll + "as");
 
         ll.removeAllViews();
 
         try {
 
-
-            new Search(s).execute();
+            System.out.println("asd");
+            new Search(s).start();
         } catch (Exception e) {
-            System.out.println(e.getStackTrace());
+            e.printStackTrace();
         }
         return false;
     }
@@ -220,7 +239,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
         List<Button> listabottoni = new ArrayList<>();
         for (int i = 0; i < sresult.size(); i++) {
-            Button myButton = new Button(getContext());
+            button myButton = new button(getContext(), sresult.get(i).get(2));
             myButton.setTag(String.valueOf(i));
             myButton.setText(sresult.get(i).get(1));
             myButton.setOnClickListener(buttonl);
@@ -242,7 +261,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         this.view = view;
         Button bu = (Button) view;
         bu.setTextColor(Color.BLUE);
-        if (!episodelist.contains((String) view.getTag())) {
+        if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
         }
         new savefile().run();
@@ -290,7 +309,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         }
     }
 
-    private class Search extends AsyncTask {
+    private class Search extends Thread {
 
         final String Searchterm;
 
@@ -301,14 +320,14 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         }
 
         @Override
-        protected Object doInBackground(Object... arg0) {
+        public void run() {
             try {
                 if (Build.VERSION.SDK_INT > 22) {
                     requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
                 }
 
                 RequestQueue queue = Volley.newRequestQueue(getContext());
-                String url = server + port + "//q?q=" + Searchterm;
+                String url = server + port + "/q?q=" + Searchterm;
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -322,8 +341,8 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                                     String[] items = json.split("\\s*], \\s*");
                                     for (String i : items
                                     ) {
-                                        i = i.replace('[', ' ');
-                                        i = i.replace(']', ' ');
+                                        i = i.replace('[', ' ').replace(']', ' ').replace('"', ' ');
+
                                         List<String> items2 = Arrays.asList(i.split("\\s*, \\s*"));
                                         sresult.add(items2);
 
@@ -355,7 +374,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                 e.printStackTrace();
             }
 
-            return null;
+
         }
 
 
@@ -482,43 +501,80 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         private final String numero;
         int prev = 0;
         List channelList = new ArrayList();
-        private Context context;
+        private final Context context;
         private NotificationManager mNotifyManager;
         private NotificationCompat.Builder mBuilder;
         private String chanel_id;
 
         public downloadTask(Context context, String currentanime, String numero) {
             this.context = context;
-            this.currentanime = currentanime+" ";
+            this.currentanime = (currentanime + " ").replaceAll("[^a-zA-Z0-9]", " ");
             this.numero = numero;
 
 
 
         }
 
+
         @Override
         protected String doInBackground(String... sUrl) {
 
-            File directory = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime);
+
+            InputStream input = null;
+            OutputStream output = null;
+            HttpURLConnection connection;
+
+            URL url = null;
+            try {
+                url = new URL(sUrl[0]);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(url.getPath()));
+            if (!file.exists()) {
+                Intent intent = new Intent(getActivity(), BackgroundService.class);
 
 
-            File file = new File(directory.getPath() + File.separator + currentanime + numero + ".mp4");
-            if (file.exists()) {
+                intent.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
 
+                intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+                intent.putExtra("com.dv.get.ACTION_LIST_OPEN", true);
+                intent.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
+                try {
+                    System.out.println("starting service");
 
+                    getActivity().startService(intent);
+
+                } catch (ActivityNotFoundException e) {
+                    e.printStackTrace();
+                    Log.w("my_app", "not found");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
                 int vlcRequestCode = 42;
                 Uri uri = Uri.parse(file.getPath());
                 Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
                 vlcIntent.setDataAndTypeAndNormalize(uri, "video/*");
                 vlcIntent.putExtra("title", currentanime);
-                PackageManager packageManager = getContext().getPackageManager();
+                PackageManager packageManager = context.getPackageManager();
                 List<ResolveInfo> activities = packageManager.queryIntentActivities(vlcIntent,
                         PackageManager.MATCH_DEFAULT_ONLY);
 
+                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".mp4");
+
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(file.getPath()), "video/*");
+                startActivityForResult(intent, 10);
+
                 if (activities.size() > 0) {
-                    startActivityForResult(vlcIntent, vlcRequestCode);
+                    //startActivityForResult(vlcIntent, vlcRequestCode);
                 } else {
-                    Snackbar snackBar = Snackbar.make(view, "An Error Occurred! missing video player", Snackbar.LENGTH_LONG).setAction("RETRY", new View.OnClickListener() {
+
+                    FragmentManager fm = getActivity().getSupportFragmentManager();
+                    View view2 = fm.getFragments().get(0).getView();
+                    Snackbar snackBar = Snackbar.make(view2, "An Error Occurred! missing video player", Snackbar.LENGTH_LONG).setAction("RETRY", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                         }
@@ -533,91 +589,9 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
                 }
 
-            } else {
-                while (downloadnumber >= maxdownload) {
-
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-
-                downloadnumber++;
-                Random rand = new Random();
-                chanel_id = String.valueOf(rand.nextInt(5000));
-
-                mNotifyManager =
-                        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                mBuilder = new NotificationCompat.Builder(context, chanel_id);
-                mBuilder.setContentTitle("Picture Download")
-                        .setContentText("Download in progress")
-                        .setSmallIcon(R.drawable.ic_launcher_foreground);
-
-                CharSequence name = "Channel Name";
-                String description = "Chanel Description";
-                int importance = NotificationManager.IMPORTANCE_LOW;
-                NotificationChannel mChannel = new NotificationChannel(chanel_id, name, importance);
-                mChannel.setDescription(description);
-                mChannel.enableLights(true);
-                mChannel.setLightColor(Color.BLUE);
-                mNotifyManager.createNotificationChannel(mChannel);
-                mBuilder = new NotificationCompat.Builder(context, chanel_id);
-                mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
-                        .setContentTitle("Downloading" + currentanime + "Ep " + numero)
-                        .setContentText("Notification Body")
-                        .setAutoCancel(true);
-
-                AndroidNetworking.download(sUrl[0], file.getParentFile().getAbsolutePath(), file.getName())
-                        .setTag("downloadTest")
-                        .setPriority(Priority.MEDIUM)
-                        .build()
-                        .setDownloadProgressListener(new DownloadProgressListener() {
-                            int prev = 0;
-
-                            @Override
-                            public void onProgress(long bytesDownloaded, long totalBytes) {
-                                // do anything with progress
-                                System.out.println(prev);
-                                System.out.println((int) ((double) bytesDownloaded / (int) totalBytes * 100));
-                                System.out.println(prev != (int) ((double) bytesDownloaded / (int) totalBytes * 100));
-                                if (prev != (int) ((double) bytesDownloaded / (int) totalBytes * 100)) {
-                                    System.out.println((prev != (int) ((double) bytesDownloaded / (int) totalBytes * 100)) + "ad");
-
-                                    DecimalFormat df = new DecimalFormat();
-                                    df.setMaximumFractionDigits(2);
-                                    prev = (int) ((double) bytesDownloaded / (int) totalBytes * 100);
-                                    mBuilder.setProgress(100, (int) ((double) bytesDownloaded / (int) totalBytes * 100), false);
-                                    mBuilder.setContentText(String.valueOf(df.format(((double) bytesDownloaded / (int) totalBytes * 100)) + "%"));
-                                    mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                }
-                            }
-                        })
-                        .startDownload(new DownloadListener() {
-                            @Override
-                            public void onDownloadComplete() {
-                                downloadnumber--;
-                                // do anything after completion
-                                mBuilder.setContentText("download complete")
-                                        // Removes the progress bar
-                                        .setProgress(0,0,false);
-                                mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                            }
-
-                            @Override
-                            public void onError(ANError error) {
-                                downloadnumber--;
-                                mBuilder.setContentText("error")
-                                        // Removes the progress bar
-                                        .setProgress(0,0,false);
-                                mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                // handle error
-                            }
-                        });
-
 
             }
+
 
 
             return null;
@@ -630,11 +604,30 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
         @Override
         public void onClick(View view) {
-            onClickBtn(view);
+            Button bu = (Button) view;
+
+            // Cr
+
+
+            MainActivity activity = (MainActivity) getActivity();
+            activity.setterfor2fragment(sresult.get(Integer.parseInt((String) bu.getTag())).get(0), bu.getText().toString().replace("\"", "").replaceAll("[^a-zA-Z0-9]", " "));
+
+            // Replace whatever is in the fragment_container view with this fragment,
+// and add the transaction to the back stack
+            //   Intent i = new Intent(R.id.action_FirstFragment_to_SecondFragment);
+            NavHostFragment.findNavController(FirstFragment.this)
+                    .navigate(R.id.action_FirstFragment_to_SecondFragment);
+
+
+// Commit the transaction
+
+
+            //  onClickBtn(view);
         }
     }
 
     public class buttonlisener2 implements View.OnClickListener {
+
 
         @Override
         public void onClick(View view) {
@@ -646,6 +639,110 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         }
     }
 
+
+    public class button extends MaterialButton {
+        public String imgurl;
+
+        public button(@NonNull Context context, String imgurl) {
+            super(context);
+            this.imgurl = imgurl;
+            if (listabitm.getbitbylink(this.imgurl) == null) {
+                downsetbitmap dsb = new downsetbitmap(this);
+                dsb.start();
+                try {
+                    dsb.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Bitmap b = listabitm.getbitbylink(this.imgurl);
+                float aspectRatio = b.getWidth() /
+                        (float) b.getHeight();
+
+                int height = Math.round(Width / aspectRatio);
+
+                b = Bitmap.createScaledBitmap(
+                        b, Width, height, false);
+
+
+                this.setIconTint(null);
+                this.setIcon(new BitmapDrawable(Resources.getSystem(), b));
+            }
+        }
+
+        public class downsetbitmap extends Thread {
+            button b;
+
+            public downsetbitmap(button b) {
+                this.b = b;
+
+            }
+
+            public void run() {
+                final Bitmap x;
+                InputStream input = null;
+                HttpURLConnection connection = null;
+                try {
+                    connection = (HttpURLConnection) new URL(imgurl).openConnection();
+
+
+                    connection.connect();
+
+
+                    input = connection.getInputStream();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                x = BitmapFactory.decodeStream(input);
+                if (x != null) {
+                    listabitm.add(imgurl, x);
+                    new savebitlist(imgurl, x).run();
+                }
+                getActivity().runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Bitmap bit = x;
+                        if (bit != null) {
+                            float aspectRatio = bit.getWidth() /
+                                    (float) bit.getHeight();
+
+                            int height = Math.round(Width / aspectRatio);
+
+                            bit = Bitmap.createScaledBitmap(
+                                    bit, Width, height, false);
+                            b.setIconTint(null);
+                            b.setIcon(new BitmapDrawable(Resources.getSystem(), bit));
+
+                            // Stuff that updates the UI
+
+                        }
+                    }
+                });
+
+
+            }
+
+        }
+
+
+    }
+
+
+    public class savebitlist extends Thread {
+        String imgurl;
+        Bitmap x;
+
+        public savebitlist(String imgurl, Bitmap x) {
+            this.imgurl = imgurl;
+            this.x = x;
+        }
+
+        public void run() {
+            dbh.addEntry(imgurl, x);
+        }
+    }
 
 }
 

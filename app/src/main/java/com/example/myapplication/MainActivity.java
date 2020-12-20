@@ -1,7 +1,8 @@
 package com.example.myapplication;
 
 import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -18,12 +19,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.FileUtils;
 import android.os.Process;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.FragmentManager;
+import androidx.navigation.Navigation;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -40,11 +42,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.androidnetworking.AndroidNetworking;
-import com.androidnetworking.common.Priority;
-import com.androidnetworking.error.ANError;
-import com.androidnetworking.interfaces.DownloadListener;
-import com.androidnetworking.interfaces.DownloadProgressListener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -65,30 +62,50 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     final List<List<String>> sresult = new ArrayList<>();
     final String port = "5000";
-    final String server = "http://192.168.0.111:";
+    final String server = "http://192.168.1.195:";
     public Context context;
     private String json;
     private LinearLayout ll;
     View view2;
-    private int downloadnumber = 0;
+    final int Width = 250;
     private String currentanime;
+    private final int downloadnumber = 0;
+    private final Context context2 = this;
     private List episodelist;
     FileInputStream fi;
     ObjectInputStream oi;
     bitmaplist listabitm;
     DatabaseHelper dbh;
-    private Context context2 = this;
+    private String currentnanimeforfragment;
+    private String urlforfragment;
+
+    public void setterfor2fragment(String url, String currentanimeff) {
+        this.urlforfragment = url;
+        this.currentnanimeforfragment = currentanimeff;
+
+
+    }
+
+    public List getter() {
+
+
+        List result = new ArrayList();
+        result.add(urlforfragment);
+        result.add(currentnanimeforfragment);
+
+
+        return result;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,7 +124,30 @@ public class MainActivity extends AppCompatActivity {
                 context = fm.getFragments().get(0).getContext();
                 ll = view2.findViewWithTag("wedr");
                 try {
-                    new Allepisode().start();
+
+                    ActivityManager manager = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
+                    manager.killBackgroundProcesses("com.dv.adm.A Editor");
+                    Intent intent = new Intent("android.intent.action.MAIN");
+                    intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
+                    intent.putExtra("com.dv.get.ACTION_LIST_ADD", "http://www.nisekoi-anime.it/DLL/ANIME/MajoNoTabitabi/MajoNoTabitabi_Ep_03_SUB_ITA_V0.mp4"); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
+// optional
+                    intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+
+                    intent.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
+                    try {
+
+                        startActivity(intent);
+
+
+                    } catch (ActivityNotFoundException e) {
+                        e.printStackTrace();
+                        Log.w("my_app", "not found");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+
+                    // new Allepisode().start();
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -117,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fm = getSupportFragmentManager();
         context = fm.getFragments().get(0).getContext();
         dbh = new DatabaseHelper(this);
-        new downloadallimage().start();
+        //new downloadallimage().start();
         File file = new File(this.getApplicationContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
         if (!file.exists()) {
             try {
@@ -165,7 +205,14 @@ public class MainActivity extends AppCompatActivity {
         new Thread() {
             @Override
             public void run() {
-                // listabitm = dbh.getAllbitmaps();
+
+/*
+                try {
+                   // listabitm = dbh.getAllbitmaps();
+                } catch (InterruptedException e) {
+                //    e.printStackTrace();
+                }
+*/
             }
 
 
@@ -196,14 +243,35 @@ public class MainActivity extends AppCompatActivity {
             context = fm.getFragments().get(0).getContext();
             ll = view2.findViewWithTag("wedr");
             try {
-                new Latest(view2).execute();
+                new Latest(view2).start();
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
+        } else if (id == R.id.search) {
+
+            Navigation.findNavController(view2)
+                    .navigate(R.id.FirstFragment);
+
+
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+    public void onClickBtn(View v) {
+        try {
+
+            String testurl = (String) v.getTag();
+            new Details((String) v.getTag()).execute();
+            Button bu = (Button) v;
+            currentanime = bu.getText().toString().replace("\"", "").replaceAll("[^a-zA-Z0-9]", " ");
+
+        } catch (Exception e) {
+            System.out.println(e.getStackTrace());
+        }
+    }
+
+    Bitmap img;
 
     private class DownloadTask extends Thread {
 
@@ -215,11 +283,12 @@ public class MainActivity extends AppCompatActivity {
         protected String numero;
         int prev = 0;
         private String chanel_id;
-        private int maxdownload = 3;
+        private final int maxdownload = 3;
 
         public DownloadTask(Context context, String currentanime, String... sUrl) {
             numero = currentanime.split(" ")[currentanime.split(" ").length - 1].trim();
-            this.currentanime = currentanime.split("Episodio")[0];
+            this.currentanime = currentanime.split("Episodio")[0].replaceAll("[^a-zA-Z0-9]", " ");
+
             this.sUrl = sUrl;
 
         }
@@ -232,27 +301,76 @@ public class MainActivity extends AppCompatActivity {
             OutputStream output = null;
             HttpURLConnection connection;
 
-            Intent intent = new Intent( MainActivity.this,BackgroundService.class);
-
+            URL url = null;
+            try {
+                url = new URL(sUrl[0]);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(url.getPath()));
+            if (!file.exists()) {
+                Intent intent = new Intent(MainActivity.this, BackgroundService.class);
 
 
 // ------ 2 --- single and batch addition without Editor opening
-            intent.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
+                intent.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
 // optional
-            intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
-            intent.putExtra("com.dv.get.ACTION_LIST_OPEN", true);
-            intent.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
-            try {
-                System.out.println("starting service");
+                intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+                intent.putExtra("com.dv.get.ACTION_LIST_OPEN", true);
+                intent.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
+                try {
+                    System.out.println("starting service");
 
-                startService(intent);
+                    startService(intent);
 
-            } catch (ActivityNotFoundException e) {
-                e.printStackTrace();
-                Log.w("my_app", "not found");
-            } catch (Exception e) {
-                e.printStackTrace();
+                } catch (ActivityNotFoundException e) {
+                    e.printStackTrace();
+                    Log.w("my_app", "not found");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                int vlcRequestCode = 42;
+                Uri uri = Uri.parse(file.getPath());
+                Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
+                vlcIntent.setDataAndTypeAndNormalize(uri, "video/*");
+                vlcIntent.putExtra("title", currentanime);
+                PackageManager packageManager = context.getPackageManager();
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(vlcIntent,
+                        PackageManager.MATCH_DEFAULT_ONLY);
+
+                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".mp4");
+
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(file.getPath()), "video/*");
+                startActivityForResult(intent, 10);
+
+                if (activities.size() > 0) {
+                    //startActivityForResult(vlcIntent, vlcRequestCode);
+                } else {
+
+                    FragmentManager fm = getSupportFragmentManager();
+                    View view2 = fm.getFragments().get(0).getView();
+                    Snackbar snackBar = Snackbar.make(view2, "An Error Occurred! missing video player", Snackbar.LENGTH_LONG).setAction("RETRY", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                        }
+                    });
+                    snackBar.setActionTextColor(Color.BLUE);
+                    View snackBarView = snackBar.getView();
+                    TextView textView = snackBarView.findViewById(R.id.snackbar_text);
+                    textView.setTextColor(Color.RED);
+                    snackBar.show();
+                    System.out.println("error");
+
+
+                }
+
+
             }
+
+
 
 
 /*
@@ -458,118 +576,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    Bitmap img;
-
-    @SuppressWarnings("rawtypes")
-    @SuppressLint("StaticFieldLeak")
-    private class Latest extends AsyncTask {
-        String url2;
-
-        public Latest(View view) {
-
-            this.url2 = url2;
-
-        }
-
-
-        @Override
-
-        protected Object doInBackground(Object... arg0) {
-            try {
-                if (Build.VERSION.SDK_INT > 22) {
-                    requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
-                }
-                try {
-                    Thread.sleep(0);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                RequestQueue queue = Volley.newRequestQueue(context);
-                String url = server + port + "/latest";
-
-// Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(url, new Response.Listener<String>() {
-
-                    @Override
-                    public void onResponse(String response) {
-                        ll.removeAllViews();
-                        System.out.println("sadsad");
-                        sresult.clear();
-                        json = response;
-                        System.out.println(json);
-                        ObjectMapper mapper = new ObjectMapper();
-
-                        try {
-
-                            String[] items = json.split("\\s*], \\s*");
-
-                            for (String i : items
-                            ) {
-                                i = i.replace("\"", "");
-                                i = i.replace("[", "");
-                                i = i.replace("]", "");
-                                i = i.replace("Streaming & Download SUB ITA - AnimeWorld", "");
-
-
-                                List<String> items2 = Arrays.asList(i.split("\\s*,\\s*"));
-                                System.out.println(i);
-                                sresult.add(items2);
-
-
-                            }
-                            List<button> listabottoni = new ArrayList<>();
-                            for (int i = 0; i < sresult.size(); i++) {
-                                button myButton = new button(context, sresult.get(i).get(2));
-                                myButton.setTag(sresult.get(i).get(0));
-                                myButton.setText(sresult.get(i).get(1));
-                                myButton.setOnClickListener(new buttonlisener2());
-                                listabottoni.add(myButton);
-                            }
-
-
-                            System.out.println(ll);
-                            for (Button myButton : listabottoni
-                            ) {
-                                ll.addView(myButton);
-                            }
-                            listabottoni.clear();
-
-                        } catch (Exception e) {
-
-                            System.out.println(e.toString());
-                        }
-                        System.out.println("asd");
-                        System.out.println(sresult);
-
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        System.out.println(error.getStackTrace());
-                    }
-                });
-
-
-                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                        1000000000,
-                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-                System.out.println("sfdad");
-
-
-// Add the request to the RequestQueue.
-                queue.add(stringRequest);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-
-    }
-
     public class buttonlisener2 implements View.OnClickListener {
 
         @Override
@@ -749,18 +755,114 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressWarnings("rawtypes")
+    @SuppressLint("StaticFieldLeak")
+    private class Latest extends Thread {
+        String url2;
 
-    public void onClickBtn(View v) {
-        try {
+        public Latest(View view) {
 
-            String testurl = (String) v.getTag();
-            new Details((String) v.getTag()).execute();
-            Button bu = (Button) v;
-            currentanime = bu.getText().toString().replace("\"", "");
+            this.url2 = url2;
 
-        } catch (Exception e) {
-            System.out.println(e.getStackTrace());
         }
+
+
+        @Override
+
+        public void run() {
+            try {
+                if (Build.VERSION.SDK_INT > 22) {
+                    requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
+                }
+                try {
+                    Thread.sleep(0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                RequestQueue queue = Volley.newRequestQueue(context);
+                String url = server + port + "/latest";
+
+// Request a string response from the provided URL.
+                StringRequest stringRequest = new StringRequest(url, new Response.Listener<String>() {
+
+                    @Override
+                    public void onResponse(String response) {
+                        ll.removeAllViews();
+                        System.out.println("sadsad");
+                        sresult.clear();
+                        json = response;
+                        System.out.println(json);
+                        ObjectMapper mapper = new ObjectMapper();
+
+                        try {
+
+                            String[] items = json.split("\\s*], \\s*");
+
+                            for (String i : items
+                            ) {
+                                i = i.replace("\"", "");
+                                i = i.replace("[", "");
+                                i = i.replace("]", "");
+                                i = i.replace("Streaming & Download SUB ITA - AnimeWorld", "");
+
+
+                                List<String> items2 = Arrays.asList(i.split("\\s*,\\s*"));
+                                System.out.println(i);
+                                sresult.add(items2);
+
+
+                            }
+                            List<button> listabottoni = new ArrayList<>();
+                            for (int i = 0; i < sresult.size(); i++) {
+                                button myButton = new button(context, sresult.get(i).get(2));
+                                myButton.setTag(sresult.get(i).get(0));
+                                myButton.setText(sresult.get(i).get(1));
+                                myButton.setOnClickListener(new buttonlisener2());
+                                listabottoni.add(myButton);
+                            }
+
+
+                            System.out.println(ll);
+                            for (Button myButton : listabottoni
+                            ) {
+                                ll.addView(myButton);
+                            }
+                            listabottoni.clear();
+
+                        } catch (Exception e) {
+
+                            System.out.println(e.toString());
+                        }
+                        System.out.println("asd");
+                        System.out.println(sresult);
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println(error.getStackTrace());
+                    }
+                });
+
+
+                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                        1000000000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                System.out.println("sfdad");
+
+
+// Add the request to the RequestQueue.
+                queue.add(stringRequest);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+
     }
 
 
@@ -968,8 +1070,19 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             } else {
+
+                Bitmap b = listabitm.getbitbylink(this.imgurl);
+                float aspectRatio = b.getWidth() /
+                        (float) b.getHeight();
+
+                int height = Math.round(Width / aspectRatio);
+
+                b = Bitmap.createScaledBitmap(
+                        b, Width, height, false);
+
+
                 this.setIconTint(null);
-                this.setIcon(new BitmapDrawable(Resources.getSystem(), listabitm.getbitbylink(this.imgurl)));
+                this.setIcon(new BitmapDrawable(Resources.getSystem(), b));
             }
         }
 
@@ -1013,11 +1126,21 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void run() {
-                        b.setIconTint(null);
-                        b.setIcon(new BitmapDrawable(Resources.getSystem(), x));
+                        Bitmap bit = x;
+                        if (bit != null) {
+                            float aspectRatio = bit.getWidth() /
+                                    (float) bit.getHeight();
 
-                        // Stuff that updates the UI
+                            int height = Math.round(Width / aspectRatio);
 
+                            bit = Bitmap.createScaledBitmap(
+                                    bit, Width, height, false);
+                            b.setIconTint(null);
+                            b.setIcon(new BitmapDrawable(Resources.getSystem(), bit));
+
+                            // Stuff that updates the UI
+
+                        }
                     }
                 });
 

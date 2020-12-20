@@ -8,6 +8,11 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
+        android:id="@+id/search"
+        android:orderInCategory="100"
+        android:title="@android:string/search_go"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/latest"
         android:title="@string/latest" />
 </menu>
