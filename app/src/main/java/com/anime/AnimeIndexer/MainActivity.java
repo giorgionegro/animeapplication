@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.anime.AnimeIndexer;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
@@ -33,7 +34,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.FragmentManager;
-import androidx.navigation.Navigation;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -71,29 +72,37 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     final List<List<String>> sresult = new ArrayList<>();
-    final String port = "5000";
-    final String server = "http://192.168.1.195:";
-    public Context context;
-    private String json;
-    private LinearLayout ll;
-    View view2;
+    final String port = "16384";
+    final String server = "http://serverparan.ddns.net:";
     final int Width = 250;
-    private String currentanime;
     private final int downloadnumber = 0;
     private final Context context2 = this;
-    private List episodelist;
+    private final buttonlistener buttonl = new buttonlistener();
+    public Context context;
+    String source;
+    View view2;
     FileInputStream fi;
     ObjectInputStream oi;
     bitmaplist listabitm;
     DatabaseHelper dbh;
+    Bitmap img;
+    private String json;
+    private LinearLayout ll;
+    private String currentanime;
+    private List episodelist;
     private String currentnanimeforfragment;
     private String urlforfragment;
+    private List listforfab;
 
     public void setterfor2fragment(String url, String currentanimeff) {
         this.urlforfragment = url;
         this.currentnanimeforfragment = currentanimeff;
 
 
+    }
+
+    public void fablistsetter(List l) {
+        listforfab = l;
     }
 
     public List getter() {
@@ -110,6 +119,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(R.style.Theme_MaterialComponents_DayNight);
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        source = sharedPreferences.getString("list_preference_1", "/aw/");
+        System.err.println("settings");
+
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -121,15 +135,29 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 FragmentManager fm = getSupportFragmentManager();
                 view2 = fm.getFragments().get(0).getView();
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(view.getContext());
+                source = sharedPreferences.getString("list_preference_1", "/aw/");
                 context = fm.getFragments().get(0).getContext();
                 ll = view2.findViewWithTag("wedr");
+                if (listforfab == null) return;
+                System.out.println(listforfab.toString());
+                List<String> l = listforfab;
+                String link = "";
+                for (String s : l
+                ) {
+                    link = link + s + "<line>";
+
+
+                }
+                System.out.println(link);
                 try {
 
                     ActivityManager manager = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
                     manager.killBackgroundProcesses("com.dv.adm.A Editor");
                     Intent intent = new Intent("android.intent.action.MAIN");
                     intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
-                    intent.putExtra("com.dv.get.ACTION_LIST_ADD", "http://www.nisekoi-anime.it/DLL/ANIME/MajoNoTabitabi/MajoNoTabitabi_Ep_03_SUB_ITA_V0.mp4"); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
+                    intent.putExtra("com.dv.get.ACTION_LIST_ADD", link); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
 // optional
                     intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
 
@@ -154,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
                 // fragment.onClicklatest(fragment.view);
             }
         });
+
         FragmentManager fm = getSupportFragmentManager();
         context = fm.getFragments().get(0).getContext();
         dbh = new DatabaseHelper(this);
@@ -219,7 +248,6 @@ public class MainActivity extends AppCompatActivity {
         }.start();
 
 
-
     }
 
     @Override
@@ -235,7 +263,9 @@ public class MainActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        source = sharedPreferences.getString("list_preference_1", "/aw/");
         //noinspection SimplifiableIfStatement
         if (id == R.id.latest) {
             FragmentManager fm = getSupportFragmentManager();
@@ -247,10 +277,11 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-        } else if (id == R.id.search) {
-
-            Navigation.findNavController(view2)
-                    .navigate(R.id.FirstFragment);
+        } else if (id == R.id.action_settings) {
+            System.out.println("asd");
+            Intent intent = new Intent(this,
+                    SettingsActivity.class);
+            startActivity(intent);
 
 
         }
@@ -260,7 +291,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void onClickBtn(View v) {
         try {
-
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(this);
+            source = sharedPreferences.getString("list_preference_1", "/aw/");
             String testurl = (String) v.getTag();
             new Details((String) v.getTag()).execute();
             Button bu = (Button) v;
@@ -271,19 +304,39 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    Bitmap img;
+    public void newButtons() {
+
+        List<Button> listabottoni = new ArrayList<>();
+        for (int i = 0; i < sresult.size(); i++) {
+            Button myButton = new Button(context);
+            myButton.setTag(String.valueOf(i));
+            myButton.setText(sresult.get(i).get(1));
+            myButton.setOnClickListener(buttonl);
+            listabottoni.add(myButton);
+        }
+
+
+        System.out.println(ll);
+        for (Button myButton : listabottoni
+        ) {
+            ll.addView(myButton);
+        }
+        listabottoni.clear();
+
+
+    }
 
     private class DownloadTask extends Thread {
 
 
         private final String currentanime;
         private final String[] sUrl;
-        private NotificationManager mNotifyManager;
-        private NotificationCompat.Builder mBuilder;
+        private final int maxdownload = 3;
         protected String numero;
         int prev = 0;
+        private NotificationManager mNotifyManager;
+        private NotificationCompat.Builder mBuilder;
         private String chanel_id;
-        private final int maxdownload = 3;
 
         public DownloadTask(Context context, String currentanime, String... sUrl) {
             numero = currentanime.split(" ")[currentanime.split(" ").length - 1].trim();
@@ -310,20 +363,26 @@ public class MainActivity extends AppCompatActivity {
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(url.getPath()));
             if (!file.exists()) {
                 Intent intent = new Intent(MainActivity.this, BackgroundService.class);
+                Intent intent1 = intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
 
 
 // ------ 2 --- single and batch addition without Editor opening
-                intent.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
+                intent1.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
 // optional
-                intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
-                intent.putExtra("com.dv.get.ACTION_LIST_OPEN", true);
-                intent.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
+                intent1.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+                intent1.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
+                intent1.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
                 try {
                     System.out.println("starting service");
 
-                    startService(intent);
+                    startActivity(intent1);
 
                 } catch (ActivityNotFoundException e) {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + "com.dv.adm")));
+                    } catch (android.content.ActivityNotFoundException anfe) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + "com.dv.adm")));
+                    }
                     e.printStackTrace();
                     Log.w("my_app", "not found");
                 } catch (Exception e) {
@@ -611,7 +670,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     private class Allepisode extends Thread {
 
 
@@ -632,7 +690,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 RequestQueue queue = Volley.newRequestQueue(context);
-                String url = server + port + "//allseries";
+                String url = server + port + source + "//allseries";
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -675,7 +733,7 @@ public class MainActivity extends AppCompatActivity {
                 queue.add(stringRequest);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e.getMessage());
             }
 
 
@@ -692,36 +750,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private final buttonlistener buttonl = new buttonlistener();
-
     public class buttonlistener implements View.OnClickListener {
 
         @Override
         public void onClick(View view) {
             onClickBtn(view);
         }
-    }
-
-    public void newButtons() {
-
-        List<Button> listabottoni = new ArrayList<>();
-        for (int i = 0; i < sresult.size(); i++) {
-            Button myButton = new Button(context);
-            myButton.setTag(String.valueOf(i));
-            myButton.setText(sresult.get(i).get(1));
-            myButton.setOnClickListener(buttonl);
-            listabottoni.add(myButton);
-        }
-
-
-        System.out.println(ll);
-        for (Button myButton : listabottoni
-        ) {
-            ll.addView(myButton);
-        }
-        listabottoni.clear();
-
-
     }
 
     public class geticon implements Runnable {
@@ -780,8 +814,8 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 RequestQueue queue = Volley.newRequestQueue(context);
-                String url = server + port + "/latest";
-
+                String url = server + port + source + "/latest";
+                System.out.println(url);
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(url, new Response.Listener<String>() {
 
@@ -856,7 +890,7 @@ public class MainActivity extends AppCompatActivity {
                 queue.add(stringRequest);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                System.err.println(e);
             }
 
 
@@ -895,7 +929,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 final List listaepisode = new ArrayList();
-                String url = server + port + "//dettagli?url=" + url2;
+                String url = server + port + source + "//dettagli?url=" + url2;
                 url = url.replaceAll("\\s+", "");
 
 // Request a string response from the provided URL.
@@ -1161,7 +1195,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("sfdad");
             try {
                 RequestQueue queue = Volley.newRequestQueue(context2);
-                String url = server + port + "//allimg";
+                String url = server + port + source + "//allimg";
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,

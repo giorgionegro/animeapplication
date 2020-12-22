@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.anime.AnimeIndexer;
 
 import android.Manifest;
 import android.app.Activity;
@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
@@ -34,6 +35,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -73,8 +75,9 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    final String port = "5000";
-    final String server = "http://192.168.1.195:";
+    final String port = "16384";
+    final String server = "http://serverparan.ddns.net:";
+    //final String server = "http://192.168.2.6:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     private final buttonlisener buttonl = new buttonlisener();
@@ -87,6 +90,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     ObjectInputStream oi;
     bitmaplist listabitm;
     DatabaseHelper dbh;
+    private String source;
 
     {
 
@@ -114,6 +118,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
     ) {
 
+
         listabitm = new bitmaplist();
         dbh = new DatabaseHelper(getContext());
         new Thread() {
@@ -131,6 +136,12 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
         }.start();
+        MainActivity m = (MainActivity) getActivity();
+        m.fablistsetter(null);
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(m);
+        source = sharedPreferences.getString("list_preference_1", "/aw/");
+
 
         verifyStoragePermissions(getActivity());
         AndroidNetworking.initialize(getContext());
@@ -152,6 +163,11 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        source = sharedPreferences.getString("list_preference_1", "/aw/");
+
         super.onViewCreated(view, savedInstanceState);
         SearchView search = view.findViewWithTag("ricerca");
         search.setOnQueryTextListener(this);
@@ -327,7 +343,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                 }
 
                 RequestQueue queue = Volley.newRequestQueue(getContext());
-                String url = server + port + "/q?q=" + Searchterm;
+                String url = server + port + source + "/q?q=" + Searchterm;
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -409,8 +425,9 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
                 final List listaepisode = new ArrayList();
-                String url = server + port + "//dettagli?url=" + url2;
+                String url = server + port + source + "//dettagli?url=" + url2;
                 url = url.replaceAll("\\s+", "");
+                System.out.println(url);
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -430,7 +447,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                                         i = i.replace('[', ' ');
                                         i = i.replace(']', ' ');
                                         i = i.replaceAll("\\s+", "");
-                                        
+
                                         System.out.println(i);
                                         item2.add(i);
                                     }
@@ -499,9 +516,9 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     private class downloadTask extends AsyncTask<String, Integer, String> {
         private final String currentanime;
         private final String numero;
+        private final Context context;
         int prev = 0;
         List channelList = new ArrayList();
-        private final Context context;
         private NotificationManager mNotifyManager;
         private NotificationCompat.Builder mBuilder;
         private String chanel_id;
@@ -510,7 +527,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             this.context = context;
             this.currentanime = (currentanime + " ").replaceAll("[^a-zA-Z0-9]", " ");
             this.numero = numero;
-
 
 
         }
@@ -533,19 +549,25 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(url.getPath()));
             if (!file.exists()) {
                 Intent intent = new Intent(getActivity(), BackgroundService.class);
+                Intent intent1 = intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
 
 
-                intent.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
+                intent1.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
 
-                intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
-                intent.putExtra("com.dv.get.ACTION_LIST_OPEN", true);
-                intent.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
+                intent1.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+                intent1.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
+                intent1.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
                 try {
                     System.out.println("starting service");
 
-                    getActivity().startService(intent);
+                    getActivity().startActivity(intent1);
 
                 } catch (ActivityNotFoundException e) {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + "com.dv.adm")));
+                    } catch (android.content.ActivityNotFoundException anfe) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + "com.dv.adm")));
+                    }
                     e.printStackTrace();
                     Log.w("my_app", "not found");
                 } catch (Exception e) {
@@ -591,7 +613,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
             }
-
 
 
             return null;

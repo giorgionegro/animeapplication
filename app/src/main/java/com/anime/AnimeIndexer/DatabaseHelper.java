@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.anime.AnimeIndexer;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -10,8 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     // Database Version
@@ -28,7 +26,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_IMAGE = "image_data";
 
     // Table create statement
-    private static final String CREATE_TABLE_IMAGE = "CREATE TABLE " + DB_TABLE + "("+
+    private static final String CREATE_TABLE_IMAGE = "CREATE TABLE " + DB_TABLE + "(" +
             KEY_NAME + " TEXT," +
             KEY_IMAGE + " BLOB);";
 
@@ -37,9 +35,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
+    public static byte[] getBytes(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+        return stream.toByteArray();
+    }
+
+    // convert from byte array to bitmap
+    public static Bitmap getImage(byte[] image) {
+        return BitmapFactory.decodeByteArray(image, 0, image.length);
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
-System.out.println("creating db");
+        System.out.println("creating db");
         // creating table
         db.execSQL(CREATE_TABLE_IMAGE);
     }
@@ -61,59 +70,44 @@ System.out.println("creating db");
         onCreate(db);
     }
 
-    public void addEntry( String name, Bitmap image) throws SQLiteException {
+    public void addEntry(String name, Bitmap image) throws SQLiteException {
         SQLiteDatabase database = this.getWritableDatabase();
-        ContentValues cv = new  ContentValues();
-        cv.put(KEY_NAME,    name);
-        cv.put(KEY_IMAGE,  getBytes( image));
-        database.insert( DB_TABLE, null, cv );
+        ContentValues cv = new ContentValues();
+        cv.put(KEY_NAME, name);
+        cv.put(KEY_IMAGE, getBytes(image));
+        database.insert(DB_TABLE, null, cv);
     }
+
     public bitmaplist getAllbitmaps() throws InterruptedException {
         bitmaplist wordList;
         wordList = new bitmaplist();
 
-            String selectQuery = "SELECT  * FROM table_image";
-            SQLiteDatabase database = this.getWritableDatabase();
-            Cursor cursor = database.rawQuery(selectQuery, null);
-            if (cursor.moveToFirst()) {
-                do {
+        String selectQuery = "SELECT  * FROM table_image";
+        SQLiteDatabase database = this.getWritableDatabase();
+        Cursor cursor = database.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
 
-                    wordList.add(cursor.getString(0), getImage(cursor.getBlob(1)));
-                    System.out.println(cursor.getString(0));
-                    Thread.sleep(10);
-                } while (movecursor(cursor,1));
-            }
+                wordList.add(cursor.getString(0), getImage(cursor.getBlob(1)));
+                System.out.println(cursor.getString(0));
+                Thread.sleep(10);
+            } while (movecursor(cursor, 1));
+        }
 
 
         // return contact list
         return wordList;
     }
 
-    public boolean movecursor(Cursor cursor, int position){
-            try {
-                return cursor.moveToPosition(cursor.getPosition()+position);
-            }catch (Exception e){
-                e.printStackTrace();
-                return movecursor(cursor, position+1);
-            }
+    public boolean movecursor(Cursor cursor, int position) {
+        try {
+            return cursor.moveToPosition(cursor.getPosition() + position);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return movecursor(cursor, position + 1);
+        }
 
 
-
-
-
-
-    }
-
-
-    public static byte[] getBytes(Bitmap bitmap) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
-        return stream.toByteArray();
-    }
-
-    // convert from byte array to bitmap
-    public static Bitmap getImage(byte[] image) {
-        return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
 
 }

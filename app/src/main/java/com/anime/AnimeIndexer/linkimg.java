@@ -1,9 +1,8 @@
-package com.example.myapplication;
+package com.anime.AnimeIndexer;
 
 public class linkimg {
 
     String img;
-
 
 
     public String getImg() {

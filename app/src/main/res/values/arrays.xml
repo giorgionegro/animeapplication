@@ -1,0 +1,12 @@
+<resources>
+    <!-- Reply Preference -->
+    <string-array name="sources">
+        <item>@string/aw</item>
+        <item>@string/as</item>
+    </string-array>
+
+    <string-array name="reply_values">
+        <item>animeworld</item>
+        <item>animesaturn</item>
+    </string-array>
+</resources>

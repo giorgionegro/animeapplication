@@ -1,9 +1,10 @@
-package com.example.myapplication;
+package com.anime.AnimeIndexer;
 
 import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
@@ -25,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -51,12 +53,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class SecondFragment extends Fragment {
 
-    final String port = "5000";
-    final String server = "http://192.168.1.195:";
+
+    final String port = "16384";
+    final String server = "http://serverparan.ddns.net:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     public List<String> episodelist;
@@ -68,6 +72,7 @@ public class SecondFragment extends Fragment {
     ObjectInputStream oi;
     String url;
     DatabaseHelper dbh;
+    private String source;
 
     public SecondFragment() {
 
@@ -97,6 +102,12 @@ public class SecondFragment extends Fragment {
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        source = sharedPreferences.getString("list_preference_1", "/aw/");
+
         MainActivity ma = (MainActivity) getActivity();
         List l = ma.getter();
         url = (String) l.get(0);
@@ -194,9 +205,9 @@ public class SecondFragment extends Fragment {
 
 
                 final List listaepisode = new ArrayList();
-                url = server + port + "//dettagli?url=" + url;
+                url = server + port + source + "//dettagli?url=" + url;
                 url = url.replaceAll("\\s+", "");
-
+                final List listforfab = new ArrayList();
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                         new Response.Listener<String>() {
@@ -206,7 +217,6 @@ public class SecondFragment extends Fragment {
                                 json = response;
                                 System.out.println(json);
                                 try {
-
                                     List<String> items = Arrays.asList(json.split("\\s*, \\s*"));
                                     List<String> item2 = new ArrayList<>();
                                     for (String i : items
@@ -215,7 +225,6 @@ public class SecondFragment extends Fragment {
                                         i = i.replace('[', ' ');
                                         i = i.replace(']', ' ');
                                         i = i.replaceAll("\\s+", "");
-
                                         System.out.println(i);
                                         item2.add(i);
                                     }
@@ -227,9 +236,11 @@ public class SecondFragment extends Fragment {
                                     items = item2;
                                     System.out.println(items);
                                     List<Button> listabottoni = new ArrayList<>();
+                                    items = new ArrayList<>(new LinkedHashSet<>(items));
                                     for (int i = 0; i < items.size(); i++) {
                                         Button myButton = new Button(getContext());
                                         myButton.setTag(items.get(i));
+                                        listforfab.add(items.get(i));
                                         myButton.setText(String.valueOf(i + 1));
                                         if (episodelist.contains(items.get(i)))
                                             myButton.setTextColor(Color.BLUE);
@@ -237,8 +248,8 @@ public class SecondFragment extends Fragment {
                                         myButton.setOnClickListener(new buttonlisener2());
                                         listabottoni.add(myButton);
                                     }
-
-
+                                    MainActivity m = (MainActivity) getActivity();
+                                    m.fablistsetter(listforfab);
                                     System.out.println(ll);
                                     for (Button myButton : listabottoni
                                     ) {
@@ -365,19 +376,26 @@ public class SecondFragment extends Fragment {
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(url.getPath()));
             if (!file.exists()) {
                 Intent intent = new Intent(getActivity(), BackgroundService.class);
+                Intent intent1 = intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
 
 
-                intent.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
+                intent1.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
 
-                intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
-                intent.putExtra("com.dv.get.ACTION_LIST_OPEN", true);
-                intent.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
+                intent1.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+                intent1.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
+                intent1.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
                 try {
                     System.out.println("starting service");
 
-                    getActivity().startService(intent);
+                    getActivity().startActivity(intent1);
 
                 } catch (ActivityNotFoundException e) {
+                    try {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + "com.dv.adm")));
+                    } catch (android.content.ActivityNotFoundException anfe) {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + "com.dv.adm")));
+                    }
+
                     e.printStackTrace();
                     Log.w("my_app", "not found");
                 } catch (Exception e) {

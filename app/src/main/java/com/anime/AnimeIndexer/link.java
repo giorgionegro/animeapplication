@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.anime.AnimeIndexer;
 
 public class link {
     String link;
