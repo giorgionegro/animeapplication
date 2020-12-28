@@ -256,7 +256,11 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                                         i = i.replace('[', ' ');
                                         i = i.replace(']', ' ');
                                         i = i.replaceAll("\\s+", "");
-                                        (ArrayList)item2.get(j)).get(0))=i;
+                                        String episode = (String)((ArrayList)item2.get(j)).get(1);
+                                        List l= new ArrayList();
+                                        l.add(i);
+                                        l.add(episode);
+                                        item2.set(j,l);
                                         System.out.println(i);
 
                                     }
