@@ -172,7 +172,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         SearchView search = view.findViewWithTag("ricerca");
         search.setOnQueryTextListener(this);
         this.view = view;
-        ll = view.findViewWithTag("wedr");
+        ll = view.findViewWithTag(getString(R.string.lista_firstfragment));
         search.setOnQueryTextListener(this);
 
         PRDownloader.initialize(getContext());

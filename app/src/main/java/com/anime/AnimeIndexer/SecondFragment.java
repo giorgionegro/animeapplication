@@ -17,10 +17,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -56,11 +59,11 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-public class SecondFragment extends Fragment {
+public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScrollChangedListener {
 
 
-    final String port = "16384";
-    final String server = "http://serverparan.ddns.net:";
+    final String port = "5000";
+    final String server = "http://192.168.1.195:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     public List<String> episodelist;
@@ -73,7 +76,9 @@ public class SecondFragment extends Fragment {
     String url;
     DatabaseHelper dbh;
     private String source;
-
+    ScrollView scrollView;
+    int chunk;
+    int chunckrequested;
     public SecondFragment() {
 
 
@@ -103,6 +108,8 @@ public class SecondFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
 
+        chunk=0;
+        chunckrequested=0;
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(getActivity());
 
@@ -113,6 +120,9 @@ public class SecondFragment extends Fragment {
         url = (String) l.get(0);
         currentanime = (String) l.get(1);
         ll = view.findViewById(R.id.elencoepisodi);
+        ll.removeAllViews();
+        scrollView= (ScrollView) ll.getParent();
+        scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
         File file = new File(getContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
         System.out.println(getContext().getFilesDir());
         if (!file.exists()) {
@@ -178,6 +188,21 @@ public class SecondFragment extends Fragment {
 
     }
 
+    @Override
+    public void onScrollChanged() {
+        System.out.println("bottom");
+        View view2 = scrollView.getChildAt(scrollView.getChildCount() - 1);
+        int bottomDetector = view2.getBottom() - (scrollView.getHeight() + scrollView.getScrollY());
+        if(bottomDetector == 0 && chunckrequested==chunk){
+            chunk++;
+            new Details().execute();
+            Toast.makeText(getContext(),"Scroll View bottom reached",Toast.LENGTH_SHORT).show();
+            System.out.println("bottom");
+
+        }
+
+    }
+
     public class Details extends AsyncTask {
 
 
@@ -185,7 +210,7 @@ public class SecondFragment extends Fragment {
 
 
             sresult.clear();
-            ll.removeAllViews();
+
         }
 
         @Override
@@ -205,7 +230,7 @@ public class SecondFragment extends Fragment {
 
 
                 final List listaepisode = new ArrayList();
-                url = server + port + source + "//dettagli?url=" + url;
+                url = server + port + source + "//dettagli?url=" + url+"&chunk="+chunk;
                 url = url.replaceAll("\\s+", "");
                 final List listforfab = new ArrayList();
 // Request a string response from the provided URL.
@@ -217,16 +242,23 @@ public class SecondFragment extends Fragment {
                                 json = response;
                                 System.out.println(json);
                                 try {
-                                    List<String> items = Arrays.asList(json.split("\\s*, \\s*"));
-                                    List<String> item2 = new ArrayList<>();
-                                    for (String i : items
-                                    ) {
-                                        i = i.replace('"', ' ');
+                                    List<String> items = Arrays.asList(json.split("\\s*], \\s*"));
+                                    ArrayList item2 = new ArrayList<>();
+
+                                    for (String s : items) {
+                                        item2.add(Arrays.asList(s.split("\\s*, \\s*")));
+
+
+                                    }
+                                    for (int j =0; j<(item2.size());j++){
+                                        String i = (String) ((ArrayList)item2.get(j)).get(0);
+                                       i =  i.replace('"', ' ');
                                         i = i.replace('[', ' ');
                                         i = i.replace(']', ' ');
                                         i = i.replaceAll("\\s+", "");
+                                        (ArrayList)item2.get(j)).get(0))=i;
                                         System.out.println(i);
-                                        item2.add(i);
+
                                     }
 
 
@@ -256,6 +288,7 @@ public class SecondFragment extends Fragment {
                                         ll.addView(myButton);
                                     }
                                     listabottoni.clear();
+                                    chunckrequested=chunk;
 
 
                                 } catch (Exception e) {

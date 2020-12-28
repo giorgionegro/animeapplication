@@ -29,12 +29,12 @@
             android:layout_height="match_parent">
 
             <LinearLayout
-                android:configChanges="uiMode"
                 android:id="@+id/elencoepisodi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:configChanges="uiMode"
                 android:orientation="vertical"
-                android:tag="wedr"/>
+                android:tag="@string/lista_firstfragment" />
         </ScrollView>
 
     </LinearLayout>

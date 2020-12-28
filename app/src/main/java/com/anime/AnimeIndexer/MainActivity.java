@@ -118,10 +118,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.Theme_MaterialComponents_DayNight);
+        setTheme(R.style.Theme_MaterialComponents_DayNight); //imposta tema scuro
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
-        source = sharedPreferences.getString("list_preference_1", "/aw/");
+        source = sharedPreferences.getString("list_preference_1", "/aw/");//prendo la sorgente dalle preferenze
         System.err.println("settings");
 
 
@@ -129,17 +129,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //Toolbar toolbar = findViewById(R.id.toolbar);
         // setSupportActionBar(toolbar);
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        FloatingActionButton fab = findViewById(R.id.fab); // cerco il floating button
+        fab.setOnClickListener(new View.OnClickListener() { // aggiungo lissener
             @Override
             public void onClick(View view) {
-                FragmentManager fm = getSupportFragmentManager();
-                view2 = fm.getFragments().get(0).getView();
+
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(view.getContext());
                 source = sharedPreferences.getString("list_preference_1", "/aw/");
-                context = fm.getFragments().get(0).getContext();
-                ll = view2.findViewWithTag("wedr");
+
                 if (listforfab == null) return;
                 System.out.println(listforfab.toString());
                 List<String> l = listforfab;
@@ -155,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
 
                     ActivityManager manager = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
                     manager.killBackgroundProcesses("com.dv.adm.A Editor");
+
+
                     Intent intent = new Intent("android.intent.action.MAIN");
                     intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
                     intent.putExtra("com.dv.get.ACTION_LIST_ADD", link); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
@@ -181,13 +181,14 @@ public class MainActivity extends AppCompatActivity {
                 }
                 // fragment.onClicklatest(fragment.view);
             }
+
         });
 
         FragmentManager fm = getSupportFragmentManager();
         context = fm.getFragments().get(0).getContext();
         dbh = new DatabaseHelper(this);
         //new downloadallimage().start();
-        File file = new File(this.getApplicationContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
+        File file = new File(this.getApplicationContext().getFilesDir() + File.pathSeparator + "myObjects.txt");//file episodi gia' scaricati
         if (!file.exists()) {
             try {
 
@@ -231,21 +232,21 @@ public class MainActivity extends AppCompatActivity {
         listabitm = new bitmaplist();
 
 
-        new Thread() {
+       /* new Thread() {
             @Override
             public void run() {
 
-/*
+*//*
                 try {
                    // listabitm = dbh.getAllbitmaps();
                 } catch (InterruptedException e) {
                 //    e.printStackTrace();
                 }
-*/
+*//*
             }
 
 
-        }.start();
+        }.start();*/
 
 
     }
@@ -269,9 +270,10 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.latest) {
             FragmentManager fm = getSupportFragmentManager();
-            View view2 = fm.getFragments().get(0).getView();
-            context = fm.getFragments().get(0).getContext();
-            ll = view2.findViewWithTag("wedr");
+            View view2 = fm.getFragments().get(0).getView();// prendo first fragment
+            context = fm.getFragments().get(0).getContext();// prendo il context
+            ll = view2.findViewWithTag(getString(R.string.lista_firstfragment));
+
             try {
                 new Latest(view2).start();
             } catch (Exception e) {
@@ -822,11 +824,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         ll.removeAllViews();
-                        System.out.println("sadsad");
+                        //System.out.println("sadsad");
                         sresult.clear();
                         json = response;
                         System.out.println(json);
-                        ObjectMapper mapper = new ObjectMapper();
+                       // ObjectMapper mapper = new ObjectMapper();
 
                         try {
 
@@ -852,15 +854,15 @@ public class MainActivity extends AppCompatActivity {
                                 myButton.setTag(sresult.get(i).get(0));
                                 myButton.setText(sresult.get(i).get(1));
                                 myButton.setOnClickListener(new buttonlisener2());
-                                listabottoni.add(myButton);
+                                ll.addView(myButton);
                             }
 
 
                             System.out.println(ll);
-                            for (Button myButton : listabottoni
+                            /*for (Button myButton : listabottoni
                             ) {
-                                ll.addView(myButton);
-                            }
+
+                            }*/
                             listabottoni.clear();
 
                         } catch (Exception e) {
@@ -1172,7 +1174,7 @@ public class MainActivity extends AppCompatActivity {
                             b.setIconTint(null);
                             b.setIcon(new BitmapDrawable(Resources.getSystem(), bit));
 
-                            // Stuff that updates the UI
+
 
                         }
                     }
