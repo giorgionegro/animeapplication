@@ -230,11 +230,12 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
 
 
                 final List listaepisode = new ArrayList();
-                url = server + port + source + "//dettagli?url=" + url+"&chunk="+chunk;
-                url = url.replaceAll("\\s+", "");
+                String url2 = server + port + source + "//dettagli?url=" + url+"&chunk="+chunk;
+                url2 = url2.replaceAll("\\s+", "");
                 final List listforfab = new ArrayList();
 // Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                System.out.println(url2);
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
@@ -243,44 +244,44 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                                 System.out.println(json);
                                 try {
                                     List<String> items = Arrays.asList(json.split("\\s*], \\s*"));
-                                    ArrayList item2 = new ArrayList<>();
+                                    ArrayList<List> item2 = new ArrayList<>();
 
                                     for (String s : items) {
                                         item2.add(Arrays.asList(s.split("\\s*, \\s*")));
 
 
                                     }
-                                    for (int j =0; j<(item2.size());j++){
-                                        String i = (String) ((ArrayList)item2.get(j)).get(0);
+                             /*       for (int j =0; j<(item2.size());j++){
+                                        String i = (String) (item2.get(j)).get(0);
                                        i =  i.replace('"', ' ');
                                         i = i.replace('[', ' ');
                                         i = i.replace(']', ' ');
                                         i = i.replaceAll("\\s+", "");
-                                        String episode = (String)((ArrayList)item2.get(j)).get(1);
+
+                                        String episode = (String)(item2.get(j)).get(1);
                                         List l= new ArrayList();
                                         l.add(i);
                                         l.add(episode);
                                         item2.set(j,l);
                                         System.out.println(i);
 
-                                    }
+                                    }*/
 
 
                                     new savefile().run();
 
                                     System.out.println(items);
-                                    items = item2;
+
                                     System.out.println(items);
                                     List<Button> listabottoni = new ArrayList<>();
-                                    items = new ArrayList<>(new LinkedHashSet<>(items));
                                     for (int i = 0; i < items.size(); i++) {
                                         Button myButton = new Button(getContext());
-                                        myButton.setTag(items.get(i));
-                                        listforfab.add(items.get(i));
-                                        myButton.setText(String.valueOf(i + 1));
-                                        if (episodelist.contains(items.get(i)))
+                                        myButton.setTag(((String)item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        listforfab.add(((String)item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        myButton.setText(((String)item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        if (episodelist.contains(((String)item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
                                             myButton.setTextColor(Color.BLUE);
-                                        //myButton.setTextColor(Color.parseColor("99FFFFFFF"));
+
                                         myButton.setOnClickListener(new buttonlisener2());
                                         listabottoni.add(myButton);
                                     }
@@ -304,15 +305,16 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        chunk--;
                         System.out.println(error.getMessage());
                     }
                 });
-                System.out.println("sfdad");
+
                 stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                        100000,
+                        10000,
                         DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                         DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-                System.out.println("sfdad");
+
 
 // Add the request to the RequestQueue.
                 queue.add(stringRequest);
