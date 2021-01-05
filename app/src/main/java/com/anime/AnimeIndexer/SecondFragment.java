@@ -62,8 +62,8 @@ import java.util.List;
 public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScrollChangedListener {
 
 
-    final String port = "5000";
-    final String server = "http://192.168.1.195:";
+    final String port = "16384";
+    final String server = "http://serverparan.ddns.net:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     public List<String> episodelist;
@@ -196,7 +196,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
         if(bottomDetector == 0 && chunckrequested==chunk){
             chunk++;
             new Details().execute();
-            Toast.makeText(getContext(),"Scroll View bottom reached",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),"reaching server for new episode",Toast.LENGTH_SHORT).show();
             System.out.println("bottom");
 
         }
@@ -306,6 +306,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         chunk--;
+                        Toast.makeText(getContext(),"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
                         System.out.println(error.getMessage());
                     }
                 });
@@ -461,18 +462,12 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                     //startActivityForResult(vlcIntent, vlcRequestCode);
                 } else {
 
-                    FragmentManager fm = getActivity().getSupportFragmentManager();
-                    View view2 = fm.getFragments().get(0).getView();
-                    Snackbar snackBar = Snackbar.make(view2, "An Error Occurred! missing video player", Snackbar.LENGTH_LONG).setAction("RETRY", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                        }
-                    });
-                    snackBar.setActionTextColor(Color.BLUE);
-                    View snackBarView = snackBar.getView();
-                    TextView textView = snackBarView.findViewById(R.id.snackbar_text);
-                    textView.setTextColor(Color.RED);
-                    snackBar.show();
+
+
+                    Toast.makeText(getContext(),"An Error Occurred! missing video player",Toast.LENGTH_SHORT).show();
+
+
+
                     System.out.println("error");
 
 

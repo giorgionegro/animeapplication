@@ -3,6 +3,7 @@ package com.anime.AnimeIndexer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
+import androidx.fragment.app.Fragment;
 import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -28,12 +29,16 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -68,6 +73,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -93,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private String currentnanimeforfragment;
     private String urlforfragment;
     private List listforfab;
-
+    static Fragment f;
     public void setterfor2fragment(String url, String currentanimeff) {
         this.urlforfragment = url;
         this.currentnanimeforfragment = currentanimeff;
@@ -159,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                     intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
                     intent.putExtra("com.dv.get.ACTION_LIST_ADD", link); // or "url1<line>url2...", or "url1<info>name_ext1<line>..."
 // optional
-                    intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
+                    intent.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentnanimeforfragment); // destination directory (default "Settings - Downloading - Folder for files")
 
                     intent.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
                     try {
@@ -259,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public  boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -268,14 +274,31 @@ public class MainActivity extends AppCompatActivity {
                 PreferenceManager.getDefaultSharedPreferences(this);
         source = sharedPreferences.getString("list_preference_1", "/aw/");
         //noinspection SimplifiableIfStatement
-        if (id == R.id.latest) {
+
             FragmentManager fm = getSupportFragmentManager();
-            View view2 = fm.getFragments().get(0).getView();// prendo first fragment
+         
+        if (id == R.id.latest) {
+            try {
+                NavHostFragment.findNavController(fm.getFragments().get(0))
+                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
+                System.out.println("good");
+                Thread.sleep(1000);
+            }catch(Exception e){
+                NavHostFragment.findNavController(fm.getFragments().get(0))
+                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+                NavHostFragment.findNavController(fm.getFragments().get(0))
+                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
+
+
+                System.out.println(e.getMessage());
+            }
+           view2 = fm.getFragments().get(0).getView();
             context = fm.getFragments().get(0).getContext();// prendo il context
-            ll = view2.findViewWithTag(getString(R.string.lista_firstfragment));
+            ll =(LinearLayout) ((ScrollView)view2.findViewById(R.id.elenco_anime)).getChildAt(0);
 
             try {
-                new Latest(view2).start();
+                androidx.fragment.app.Fragment f = (androidx.fragment.app.Fragment) fm.getFragments().get(0);
+
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -290,7 +313,13 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+public void latest(Context c){
 
+
+
+
+
+}
     public void onClickBtn(View v) {
         try {
             SharedPreferences sharedPreferences =
@@ -411,18 +440,8 @@ public class MainActivity extends AppCompatActivity {
                     //startActivityForResult(vlcIntent, vlcRequestCode);
                 } else {
 
-                    FragmentManager fm = getSupportFragmentManager();
-                    View view2 = fm.getFragments().get(0).getView();
-                    Snackbar snackBar = Snackbar.make(view2, "An Error Occurred! missing video player", Snackbar.LENGTH_LONG).setAction("RETRY", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                        }
-                    });
-                    snackBar.setActionTextColor(Color.BLUE);
-                    View snackBarView = snackBar.getView();
-                    TextView textView = snackBarView.findViewById(R.id.snackbar_text);
-                    textView.setTextColor(Color.RED);
-                    snackBar.show();
+                    Toast.makeText(context,"An Error Occurred! missing video player",Toast.LENGTH_SHORT).show();
+
                     System.out.println("error");
 
 
@@ -712,6 +731,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                 } catch (Exception e) {
+                                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
 
                                     System.out.println(e.toString());
                                 }
@@ -722,6 +742,8 @@ public class MainActivity extends AppCompatActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(context,"Error on reaching server please retry later",Toast.LENGTH_SHORT).show();
+
                         System.out.println(error.getMessage());
                     }
                 });
@@ -735,7 +757,7 @@ public class MainActivity extends AppCompatActivity {
                 queue.add(stringRequest);
 
             } catch (Exception e) {
-                System.err.println(e.getMessage());
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
             }
 
 
@@ -783,7 +805,7 @@ public class MainActivity extends AppCompatActivity {
 // Decode Bitmap
                 //bitmap = BitmapFactory.decodeStream(input);
             } catch (Exception e) {
-                e.printStackTrace();
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
             }
             b.setIcon(new BitmapDrawable(getResources(), bitmap));
 
@@ -813,7 +835,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Thread.sleep(0);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                 }
                 RequestQueue queue = Volley.newRequestQueue(context);
                 String url = server + port + source + "/latest";
@@ -866,7 +888,7 @@ public class MainActivity extends AppCompatActivity {
                             listabottoni.clear();
 
                         } catch (Exception e) {
-
+                            Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                             System.out.println(e.toString());
                         }
                         System.out.println("asd");
@@ -877,6 +899,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         System.out.println(error.getStackTrace());
+                        Toast.makeText(context,"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
+
                     }
                 });
 
@@ -893,6 +917,7 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 System.err.println(e);
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
             }
 
 
@@ -922,6 +947,7 @@ public class MainActivity extends AppCompatActivity {
                     requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
                 }
             } catch (Exception e) {
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
 
@@ -985,7 +1011,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                 } catch (Exception e) {
-
+                                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                                     System.out.println(e.toString());
                                 }
                                 System.out.println("asd");
@@ -995,6 +1021,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         System.out.println(error.getMessage());
+                        Toast.makeText(context,"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
+
                     }
                 });
                 System.out.println("sfdad");
@@ -1009,6 +1037,7 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
             }
             new saveepisodelist().run();
 
@@ -1031,6 +1060,7 @@ public class MainActivity extends AppCompatActivity {
 
                     System.out.println("file created");
                 } catch (IOException e) {
+                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             }
@@ -1048,9 +1078,11 @@ public class MainActivity extends AppCompatActivity {
 
 
             } catch (FileNotFoundException e) {
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             } catch (Exception e) {
                 e.printStackTrace();
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
             }
             if (episodelist == null) {
                 episodelist = new ArrayList<>();
@@ -1103,6 +1135,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     dsb.join();
                 } catch (InterruptedException e) {
+                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             } else {
@@ -1138,18 +1171,21 @@ public class MainActivity extends AppCompatActivity {
                     connection = (HttpURLConnection) new URL(imgurl).openConnection();
 
                 } catch (IOException e) {
+                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                     System.err.println(e.getMessage());
                 }
                 try {
                     connection.connect();
                 } catch (Exception e) {
+                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
                 InputStream input = null;
                 try {
                     input = connection.getInputStream();
                 } catch (Exception e) {
+                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
 
@@ -1217,6 +1253,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                 } catch (Exception e) {
+                                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
 
                                     System.out.println(e.toString());
                                 }
@@ -1247,6 +1284,7 @@ public class MainActivity extends AppCompatActivity {
 
                                                     input = connection.getInputStream();
                                                 } catch (Exception e) {
+                                                    Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                                                     e.printStackTrace();
                                                 }
 
@@ -1257,6 +1295,7 @@ public class MainActivity extends AppCompatActivity {
                                                     try {
                                                         sleep(10);
                                                     } catch (InterruptedException e) {
+                                                        Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                                                         e.printStackTrace();
                                                     }
                                                 }
@@ -1272,6 +1311,8 @@ public class MainActivity extends AppCompatActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(context,"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
+
                         error.printStackTrace();
                         System.err.println("errore volley");
                     }
@@ -1286,12 +1327,14 @@ public class MainActivity extends AppCompatActivity {
                 queue.add(stringRequest);
 
             } catch (Exception e) {
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
 
             try {
                 sleep(500);
             } catch (InterruptedException e) {
+                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
 

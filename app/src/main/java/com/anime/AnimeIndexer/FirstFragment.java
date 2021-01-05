@@ -28,6 +28,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -145,6 +146,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
         verifyStoragePermissions(getActivity());
         AndroidNetworking.initialize(getContext());
+        dolatest();
         return inflater.inflate(R.layout.fragment_first, container, false);
     }
 
@@ -225,7 +227,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
         }
-
+        dolatest();
         System.out.println(this.getId());
     }
 
@@ -377,6 +379,8 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getContext(),"Error on reaching server please retry later",Toast.LENGTH_SHORT).show();
+
                         System.out.println(error.getMessage());
                     }
                 });
@@ -489,6 +493,8 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getContext(),"Error on reaching server please retry later",Toast.LENGTH_SHORT).show();
+
                         System.out.println(error.getMessage());
                     }
                 });
@@ -594,19 +600,10 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                     //startActivityForResult(vlcIntent, vlcRequestCode);
                 } else {
 
-                    FragmentManager fm = getActivity().getSupportFragmentManager();
-                    View view2 = fm.getFragments().get(0).getView();
-                    Snackbar snackBar = Snackbar.make(view2, "An Error Occurred! missing video player", Snackbar.LENGTH_LONG).setAction("RETRY", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                        }
-                    });
-                    snackBar.setActionTextColor(Color.BLUE);
-                    View snackBarView = snackBar.getView();
-                    TextView textView = snackBarView.findViewById(R.id.snackbar_text);
-                    textView.setTextColor(Color.RED);
-                    snackBar.show();
-                    System.out.println("error");
+
+                    Toast.makeText(getContext(),"An Error Occurred! missing video player",Toast.LENGTH_SHORT).show();
+
+
 
 
                 }
@@ -636,7 +633,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             // Replace whatever is in the fragment_container view with this fragment,
 // and add the transaction to the back stack
             //   Intent i = new Intent(R.id.action_FirstFragment_to_SecondFragment);
-            NavHostFragment.findNavController(FirstFragment.this)
+            NavHostFragment.findNavController( FirstFragment.this)
                     .navigate(R.id.action_FirstFragment_to_SecondFragment);
 
 
@@ -764,6 +761,129 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             dbh.addEntry(imgurl, x);
         }
     }
+
+    public void dolatest(){
+        new Latest(view).start();
+
+
+
+
+
+
+    }
+    public class Latest extends Thread {
+        String url2;
+
+        public Latest(View view) {
+
+            this.url2 = url2;
+
+        }
+
+
+        @Override
+
+        public void run() {
+            try {
+                if (Build.VERSION.SDK_INT > 22) {
+                    requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
+                }
+                try {
+                    Thread.sleep(0);
+                } catch (Exception e) {
+                    Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show();
+                }
+                RequestQueue queue = Volley.newRequestQueue(getContext());
+                String url = server + port + source + "/latest";
+                System.out.println(url);
+// Request a string response from the provided URL.
+                StringRequest stringRequest = new StringRequest(url, new Response.Listener<String>() {
+
+                    @Override
+                    public void onResponse(String response) {
+                        ll.removeAllViews();
+                        //System.out.println("sadsad");
+                        sresult.clear();
+                        json = response;
+                        System.out.println(json);
+                        // ObjectMapper mapper = new ObjectMapper();
+
+                        try {
+
+                            String[] items = json.split("\\s*], \\s*");
+
+                            for (String i : items
+                            ) {
+                                i = i.replace("\"", "");
+                                i = i.replace("[", "");
+                                i = i.replace("]", "");
+                                i = i.replace("Streaming & Download SUB ITA - AnimeWorld", "");
+
+
+                                List<String> items2 = Arrays.asList(i.split("\\s*,\\s*"));
+                                System.out.println(i);
+                                sresult.add(items2);
+
+
+                            }
+                            List<MainActivity.button> listabottoni = new ArrayList<>();
+                            for (int i = 0; i < sresult.size(); i++) {
+                                button myButton = new button(getContext(), sresult.get(i).get(2));
+                                myButton.setTag(sresult.get(i).get(0));
+                                myButton.setText(sresult.get(i).get(1));
+                                myButton.setOnClickListener(new buttonlisener2());
+                                ll.addView(myButton);
+                            }
+
+
+                            System.out.println(ll);
+                            /*for (Button myButton : listabottoni
+                            ) {
+
+                            }*/
+                            listabottoni.clear();
+
+                        } catch (Exception e) {
+                            Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show();
+                            System.out.println(e.toString());
+                        }
+                        System.out.println("asd");
+                        System.out.println(sresult);
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        System.out.println(error.getStackTrace());
+                        Toast.makeText(getContext(),"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+
+
+                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                        1000000000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                System.out.println("sfdad");
+
+
+// Add the request to the RequestQueue.
+                queue.add(stringRequest);
+
+            } catch (Exception e) {
+                System.err.println(e);
+                Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+
+
+    }
+
+
+
 
 }
 
