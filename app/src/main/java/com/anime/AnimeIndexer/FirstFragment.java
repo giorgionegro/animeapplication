@@ -235,7 +235,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     public boolean onQueryTextSubmit(String s) {
         sresult.clear();
         System.out.println(ll + "as");
-
+        s=s.replaceAll(" " ,"+");
         ll.removeAllViews();
 
         try {
