@@ -27,14 +27,12 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.preference.PreferenceManager;
 
@@ -49,7 +47,6 @@ import com.androidnetworking.AndroidNetworking;
 import com.downloader.PRDownloader;
 import com.downloader.PRDownloaderConfig;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -92,11 +89,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     bitmaplist listabitm;
     DatabaseHelper dbh;
     private String source;
-
-    {
-
-
-    }
 
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
@@ -149,20 +141,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         dolatest();
         return inflater.inflate(R.layout.fragment_first, container, false);
     }
-
-    public void onClickBtn(View v) {
-        try {
-
-            String testurl = sresult.get(Integer.parseInt((String) v.getTag())).get(0);
-            new Details(sresult.get(Integer.parseInt((String) v.getTag())).get(0)).execute();
-            Button bu = (Button) v;
-            currentanime = bu.getText().toString().replace("\"", "").replaceAll("[^a-zA-Z0-9]", " ");
-
-        } catch (Exception e) {
-            System.out.println(e.getStackTrace());
-        }
-    }
-
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         SharedPreferences sharedPreferences =
@@ -235,7 +213,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     public boolean onQueryTextSubmit(String s) {
         sresult.clear();
         System.out.println(ll + "as");
-        s=s.replaceAll(" " ,"+");
+        s = s.replaceAll(" ", "+");
         ll.removeAllViews();
 
         try {
@@ -278,7 +256,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     public void startdownload(View view) {
         this.view = view;
         Button bu = (Button) view;
-        currentanime=(((String)view.getTag()).split("/"))[((String)view.getTag()).split("/").length-2];
+        currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
         bu.setTextColor(Color.BLUE);
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
@@ -292,8 +270,13 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
     }
 
-    public class savefile extends Thread {
+    public void dolatest() {
+        new Latest(view).start();
 
+
+    }
+
+    public class savefile extends Thread {
 
         public void run() {
             File file = new File(getContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
@@ -380,7 +363,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getContext(),"Error on reaching server please retry later",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
 
                         System.out.println(error.getMessage());
                     }
@@ -396,125 +379,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             }
 
 
-        }
-
-
-    }
-
-    public class Details extends AsyncTask {
-
-        String url2;
-
-
-        public Details(String url2) {
-
-            this.url2 = url2;
-            sresult.clear();
-            ll.removeAllViews();
-        }
-
-        @Override
-        protected Object doInBackground(Object... arg0) {
-
-            try {
-                if (Build.VERSION.SDK_INT > 22) {
-                    requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            final RequestQueue queue = Volley.newRequestQueue(getContext());
-            url2 = url2.replace('"', ' ');
-            try {
-
-
-                final List listaepisode = new ArrayList();
-                String url = server + port + source + "//dettagli?url=" + url2;
-                url = url.replaceAll("\\s+", "");
-                System.out.println(url);
-
-// Request a string response from the provided URL.
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                System.out.println("sadsad");
-                                json = response;
-                                System.out.println(json);
-                                try {
-
-                                    List<String> items = Arrays.asList(json.split("\\s*, \\s*"));
-                                    List<String> item2 = new ArrayList<>();
-                                    for (String i : items
-                                    ) {
-                                        i = i.replace('"', ' ');
-                                        i = i.replace('[', ' ');
-                                        i = i.replace(']', ' ');
-                                        i = i.replaceAll("\\s+", "");
-
-                                        System.out.println(i);
-                                        item2.add(i);
-                                    }
-
-
-                                    new savefile().run();
-
-                                    System.out.println(items);
-                                    items = item2;
-                                    System.out.println(items);
-                                    List<Button> listabottoni = new ArrayList<>();
-                                    for (int i = 0; i < items.size(); i++) {
-                                        Button myButton = new Button(getContext());
-                                        myButton.setTag(items.get(i));
-                                        myButton.setText(String.valueOf(i + 1));
-                                        if (episodelist.contains(items.get(i)))
-                                            myButton.setTextColor(Color.BLUE);
-                                        //myButton.setTextColor(Color.parseColor("99FFFFFFF"));
-                                        myButton.setOnClickListener(new buttonlisener2());
-                                        listabottoni.add(myButton);
-                                    }
-
-
-                                    System.out.println(ll);
-                                    for (Button myButton : listabottoni
-                                    ) {
-                                        ll.addView(myButton);
-                                    }
-                                    listabottoni.clear();
-
-
-                                } catch (Exception e) {
-
-                                    System.out.println(e.toString());
-                                }
-                                System.out.println("asd");
-                                System.out.println();
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getContext(),"Error on reaching server please retry later",Toast.LENGTH_SHORT).show();
-
-                        System.out.println(error.getMessage());
-                    }
-                });
-                System.out.println("sfdad");
-                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                        100000,
-                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-                System.out.println("sfdad");
-
-// Add the request to the RequestQueue.
-                queue.add(stringRequest);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            new savefile().run();
-
-            return null;
         }
 
 
@@ -602,9 +466,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                 } else {
 
 
-                    Toast.makeText(getContext(),"An Error Occurred! missing video player",Toast.LENGTH_SHORT).show();
-
-
+                    Toast.makeText(getContext(), "An Error Occurred! missing video player", Toast.LENGTH_SHORT).show();
 
 
                 }
@@ -634,7 +496,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             // Replace whatever is in the fragment_container view with this fragment,
 // and add the transaction to the back stack
             //   Intent i = new Intent(R.id.action_FirstFragment_to_SecondFragment);
-            NavHostFragment.findNavController( FirstFragment.this)
+            NavHostFragment.findNavController(FirstFragment.this)
                     .navigate(R.id.action_FirstFragment_to_SecondFragment);
 
 
@@ -658,7 +520,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         }
     }
 
-
     public class button extends MaterialButton {
         public String imgurl;
 
@@ -671,9 +532,11 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                 try {
                     dsb.join();
                 } catch (InterruptedException e) {
+                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
             } else {
+
                 Bitmap b = listabitm.getbitbylink(this.imgurl);
                 float aspectRatio = b.getWidth() /
                         (float) b.getHeight();
@@ -699,17 +562,27 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
             public void run() {
                 final Bitmap x;
-                InputStream input = null;
+
                 HttpURLConnection connection = null;
                 try {
                     connection = (HttpURLConnection) new URL(imgurl).openConnection();
 
-
+                } catch (IOException e) {
+                    Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                    System.err.println(e.getMessage());
+                }
+                try {
                     connection.connect();
-
-
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+                InputStream input = null;
+                try {
                     input = connection.getInputStream();
                 } catch (Exception e) {
+                    Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
 
@@ -718,36 +591,35 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                     listabitm.add(imgurl, x);
                     new savebitlist(imgurl, x).run();
                 }
-                getActivity().runOnUiThread(new Runnable() {
+                Bitmap bit = x;
+                if (bit != null) {
+                    float aspectRatio = bit.getWidth() /
+                            (float) bit.getHeight();
 
-                    @Override
-                    public void run() {
-                        Bitmap bit = x;
-                        if (bit != null) {
-                            float aspectRatio = bit.getWidth() /
-                                    (float) bit.getHeight();
+                    int height = Math.round(Width / aspectRatio);
 
-                            int height = Math.round(Width / aspectRatio);
+                    final Bitmap fbit = Bitmap.createScaledBitmap(
+                            bit, Width, height, false);
+                    getActivity().runOnUiThread(new Runnable() {
 
-                            bit = Bitmap.createScaledBitmap(
-                                    bit, Width, height, false);
+                        @Override
+                        public void run() {
+
                             b.setIconTint(null);
-                            b.setIcon(new BitmapDrawable(Resources.getSystem(), bit));
+                            b.setIcon(new BitmapDrawable(Resources.getSystem(), fbit));
 
-                            // Stuff that updates the UI
 
                         }
-                    }
-                });
+                    });
 
+
+                }
 
             }
 
+
         }
-
-
     }
-
 
     public class savebitlist extends Thread {
         String imgurl;
@@ -763,15 +635,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
         }
     }
 
-    public void dolatest(){
-        new Latest(view).start();
-
-
-
-
-
-
-    }
     public class Latest extends Thread {
         String url2;
 
@@ -792,7 +655,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                 try {
                     Thread.sleep(0);
                 } catch (Exception e) {
-                    Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                 }
                 RequestQueue queue = Volley.newRequestQueue(getContext());
                 String url = server + port + source + "/latest";
@@ -827,7 +690,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
                             }
-                            List<MainActivity.button> listabottoni = new ArrayList<>();
+                            List<button> listabottoni = new ArrayList<>();
                             for (int i = 0; i < sresult.size(); i++) {
                                 button myButton = new button(getContext(), sresult.get(i).get(2));
                                 myButton.setTag(sresult.get(i).get(0));
@@ -845,7 +708,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                             listabottoni.clear();
 
                         } catch (Exception e) {
-                            Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                             System.out.println(e.toString());
                         }
                         System.out.println("asd");
@@ -856,7 +719,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         System.out.println(error.getStackTrace());
-                        Toast.makeText(getContext(),"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Error on reaching server, maybe there are no new episode D:, if not  please retry later", Toast.LENGTH_SHORT).show();
 
                     }
                 });
@@ -874,7 +737,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
             } catch (Exception e) {
                 System.err.println(e);
-                Toast.makeText(getContext(),e.toString(),Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
 
 
@@ -882,9 +745,6 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
     }
-
-
-
 
 }
 
