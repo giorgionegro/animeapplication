@@ -22,13 +22,11 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -38,7 +36,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.android.material.snackbar.Snackbar;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -56,16 +53,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 
-public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScrollChangedListener {
+public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
 
     final String port = "16384";
-    final String server = "http://serverparan.ddns.net:";
+    //  final String server = "http://serverparan.ddns.net:";
+    final String server = "http://192.168.0.250:";
     final List<List<String>> sresult = new ArrayList<>();
-    final int Width = 250;
     public List<String> episodelist;
     String currentanime;
     String json;
@@ -75,13 +71,13 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
     ObjectInputStream oi;
     String url;
     DatabaseHelper dbh;
-    private String source;
     ScrollView scrollView;
     int chunk;
     int chunckrequested;
+    private String source;
+
+
     public SecondFragment() {
-
-
     }
 
     @Override
@@ -89,27 +85,13 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-
-
-
-
-
-
-
-
-      /*
-          currentanime=(String) savedInstanceState.get("currentanime");
-        url = (String) savedInstanceState.get("url");
-        */
-
-
         return inflater.inflate(R.layout.fragment_second, container, false);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
 
-        chunk=0;
-        chunckrequested=0;
+        chunk = 0;
+        chunckrequested = 0;
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(getActivity());
 
@@ -121,7 +103,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
         currentanime = (String) l.get(1);
         ll = view.findViewById(R.id.elencoepisodi);
         ll.removeAllViews();
-        scrollView= (ScrollView) ll.getParent();
+        scrollView = (ScrollView) ll.getParent();
         scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
         File file = new File(getContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
         System.out.println(getContext().getFilesDir());
@@ -176,6 +158,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
         this.view = view;
         Button bu = (Button) view;
         bu.setTextColor(Color.BLUE);
+        currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
         }
@@ -193,10 +176,10 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
         System.out.println("bottom");
         View view2 = scrollView.getChildAt(scrollView.getChildCount() - 1);
         int bottomDetector = view2.getBottom() - (scrollView.getHeight() + scrollView.getScrollY());
-        if(bottomDetector == 0 && chunckrequested==chunk){
+        if (bottomDetector == 0 && chunckrequested == chunk) {
             chunk++;
             new Details().execute();
-            Toast.makeText(getContext(),"reaching server for new episode",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "reaching server for new episode", Toast.LENGTH_SHORT).show();
             System.out.println("bottom");
 
         }
@@ -230,7 +213,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
 
 
                 final List listaepisode = new ArrayList();
-                String url2 = server + port + source + "//dettagli?url=" + url+"&chunk="+chunk;
+                String url2 = server + port + source + "//dettagli?url=" + url + "&chunk=" + chunk;
                 url2 = url2.replaceAll("\\s+", "");
                 final List listforfab = new ArrayList();
 // Request a string response from the provided URL.
@@ -276,10 +259,10 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                                     List<Button> listabottoni = new ArrayList<>();
                                     for (int i = 0; i < items.size(); i++) {
                                         Button myButton = new Button(getContext());
-                                        myButton.setTag(((String)item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        listforfab.add(((String)item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        myButton.setText(((String)item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        if (episodelist.contains(((String)item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
+                                        myButton.setTag(((String) item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        listforfab.add(((String) item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        myButton.setText(((String) item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        if (episodelist.contains(((String) item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
                                             myButton.setTextColor(Color.BLUE);
 
                                         myButton.setOnClickListener(new buttonlisener2());
@@ -293,7 +276,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                                         ll.addView(myButton);
                                     }
                                     listabottoni.clear();
-                                    chunckrequested=chunk;
+                                    chunckrequested = chunk;
 
 
                                 } catch (Exception e) {
@@ -306,7 +289,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         chunk--;
-                        Toast.makeText(getContext(),"Error on reaching server, maybe there are no new episode D:, if not  please retry later",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Error on reaching server, maybe there are no new episode D:, if not  please retry later", Toast.LENGTH_SHORT).show();
                         System.out.println(error.getMessage());
                     }
                 });
@@ -463,9 +446,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
                 } else {
 
 
-
-                    Toast.makeText(getContext(),"An Error Occurred! missing video player",Toast.LENGTH_SHORT).show();
-
+                    Toast.makeText(getContext(), "An Error Occurred! missing video player", Toast.LENGTH_SHORT).show();
 
 
                     System.out.println("error");
