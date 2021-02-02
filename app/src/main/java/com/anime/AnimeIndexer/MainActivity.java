@@ -79,7 +79,8 @@ public class MainActivity extends AppCompatActivity {
 
     final List<List<String>> sresult = new ArrayList<>();
     final String port = "16384";
-    final String server = "http://serverparan.ddns.net:";
+   // final String server = "http://serverparan.ddns.net:";
+    final String server = "http://192.168.0.250:";
     final int Width = 250;
     private final int downloadnumber = 0;
     private final Context context2 = this;
@@ -100,9 +101,8 @@ public class MainActivity extends AppCompatActivity {
     private String urlforfragment;
     private List listforfab;
     static Fragment f;
-    public void setterfor2fragment(String url, String currentanimeff) {
+    public void setterfor2fragment(String url) {
         this.urlforfragment = url;
-        this.currentnanimeforfragment = currentanimeff;
 
 
     }
@@ -440,7 +440,7 @@ public void latest(Context c){
                     //startActivityForResult(vlcIntent, vlcRequestCode);
                 } else {
 
-                    Toast.makeText(context,"An Error Occurred! missing video player",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "An Error Occurred! missing video player", Toast.LENGTH_SHORT).show();
 
                     System.out.println("error");
 
@@ -449,207 +449,6 @@ public void latest(Context c){
 
 
             }
-
-
-
-
-/*
-                    while (downloadnumber >= maxdownload) {
-
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-
-                    downloadnumber++;
-                    Random rand = new Random();
-                    chanel_id = String.valueOf(rand.nextInt(5000));
-
-                    mNotifyManager =
-                            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                    mBuilder = new NotificationCompat.Builder(context, chanel_id);
-                    mBuilder.setContentTitle("Picture Download")
-                            .setContentText("Download in progress")
-                            .setSmallIcon(R.drawable.ic_launcher_foreground);
-
-                    CharSequence name = "Channel Name";
-                    String description = "Chanel Description";
-                    int importance = NotificationManager.IMPORTANCE_LOW;
-                    NotificationChannel mChannel = new NotificationChannel(chanel_id, name, importance);
-                    mChannel.setDescription(description);
-                    mChannel.enableLights(true);
-                    mChannel.setLightColor(Color.BLUE);
-                    mNotifyManager.createNotificationChannel(mChannel);
-                    mBuilder = new NotificationCompat.Builder(context, chanel_id);
-                    mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
-                            .setContentTitle("Downloading" + currentanime + "Ep " + numero)
-                            .setContentText("Notification Body")
-                            .setAutoCancel(true);
-
-                    AndroidNetworking.download(sUrl[0], file.getParentFile().getAbsolutePath(), file.getName())
-                            .setTag("downloadTest")
-                            .setPriority(Priority.MEDIUM)
-                            .build()
-                            .setDownloadProgressListener(new DownloadProgressListener() {
-                                int prev = 0;
-
-                                @Override
-                                public void onProgress(long bytesDownloaded, long totalBytes) {
-                                    // do anything with progress
-                                    System.out.println(prev);
-                                    System.out.println((int) ((double) bytesDownloaded / (int) totalBytes * 100));
-                                    System.out.println(prev != (int) ((double) bytesDownloaded / (int) totalBytes * 100));
-                                    if (prev != (int) ((double) bytesDownloaded / (int) totalBytes * 100)) {
-                                        System.out.println((prev != (int) ((double) bytesDownloaded / (int) totalBytes * 100)) + "ad");
-
-                                        DecimalFormat df = new DecimalFormat();
-                                        df.setMaximumFractionDigits(2);
-                                        prev = (int) ((double) bytesDownloaded / (int) totalBytes * 100);
-                                        mBuilder.setProgress(100, (int) ((double) bytesDownloaded / (int) totalBytes * 100), false);
-                                        mBuilder.setContentText(String.valueOf(df.format(((double) bytesDownloaded / (int) totalBytes * 100)) + "%"));
-                                        mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                    }
-                                }
-                            })
-                            .startDownload(new DownloadListener() {
-                                @Override
-                                public void onDownloadComplete() {
-                                    downloadnumber--;
-                                    // do anything after completion
-                                    mBuilder.setContentText("download complete")
-                                            // Removes the progress bar
-                                            .setProgress(0,0,false);
-                                    mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                }
-
-                                @Override
-                                public void onError(ANError error) {
-                                    downloadnumber--;
-                                    mBuilder.setContentText("error")
-                                            // Removes the progress bar
-                                            .setProgress(0,0,false);
-                                    mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                    // handle error
-                                }
-                            });
-*/
-
-
-
-/*
-
-                    Random rand = new Random();
-                    chanel_id = String.valueOf(rand.nextInt(5000));
-
-                    final int downloadId = PRDownloader.download(sUrl[0], directory.getPath(), currentanime +numero+ ".mp4")
-                            .build()
-
-                            .setOnStartOrResumeListener(new OnStartOrResumeListener() {
-                                @RequiresApi(api = Build.VERSION_CODES.O)
-                                @Override
-                                public void onStartOrResume() {
-
-                                    mNotifyManager =
-                                            (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-                                    mBuilder = new NotificationCompat.Builder(context,chanel_id);
-                                    mBuilder.setContentTitle("Picture Download")
-                                            .setContentText("Download in progress")
-                                            .setSmallIcon(R.drawable.ic_launcher_foreground);
-
-                                    CharSequence name = "Channel Name";
-                                    String description = "Chanel Description";
-                                    int importance = NotificationManager.IMPORTANCE_LOW;
-                                    NotificationChannel mChannel = new NotificationChannel(chanel_id, name, importance);
-                                    mChannel.setDescription(description);
-                                    mChannel.enableLights(true);
-                                    mChannel.setLightColor(Color.BLUE);
-                                    mNotifyManager.createNotificationChannel(mChannel);
-                                    mBuilder = new NotificationCompat.Builder(context, chanel_id);
-                                    mBuilder.setSmallIcon(R.drawable.ic_launcher_foreground)
-                                            .setContentTitle("Scaricando" +currentanime +"Ep "+numero)
-                                            .setContentText("Notification Body")
-                                            .setAutoCancel(true);
-
-
-                                }
-                            })
-                            .setOnPauseListener(new OnPauseListener() {
-                                @Override
-                                public void onPause() {
-
-                                }
-                            })
-                            .setOnCancelListener(new OnCancelListener() {
-                                @Override
-                                public void onCancel() {
-
-                                }
-                            })
-                            .setOnProgressListener(new OnProgressListener() {
-                                @Override
-                                public void onProgress(Progress progress) {
-                                    if((int)((double)progress.currentBytes/(int)progress.totalBytes *100)!=prev) {
-                                        DecimalFormat df = new DecimalFormat();
-                                        df.setMaximumFractionDigits(2);
-                                                    prev=(int)((double)progress.currentBytes/(int)progress.totalBytes *100);
-                                        mBuilder.setProgress(100, (int) ((double) progress.currentBytes / (int) progress.totalBytes * 100), false);
-                                        mBuilder.setContentText(String.valueOf(df.format(((double) progress.currentBytes / (int) progress.totalBytes * 100)) + "%"));
-                                        mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                    }
-
-
-                                }
-                            })
-                            .start(new OnDownloadListener() {
-                                @Override
-                                public void onDownloadComplete() {
-                                    mBuilder.setContentText("download complete")
-                                            // Removes the progress bar
-                                            .setProgress(0,0,false);
-                                    mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-                                }
-
-                                @Override
-                                public void onError(Error error) {
-                                    mBuilder.setContentText("error")
-                                            // Removes the progress bar
-                                            .setProgress(0,0,false);
-                                    mNotifyManager.notify(Integer.parseInt(chanel_id), mBuilder.build());
-
-
-                                }
-
-
-                            });
-*/
-
-
-
-
-
-                    /*
-                     input = connection.getInputStream();
-                                    output = new FileOutputStream(Environment.getExternalStorageDirectory().getPath() + "/anime/" + File.separator + currentanime + File.separator + currentanime + ".mp4");
-
-                                    byte[] data = new byte[4096];
-                                    long total = 0;
-                                    int count;
-                                    while ((count = input.read(data)) != -1) {
-                                        if (isCancelled()) {
-                                            input.close();
-                                            return null;
-                                        }
-                                        total += count;
-                                        // publishing the progress....
-                                        if (fileLength > 0) // only if total length is known
-                                            publishProgress((int) (total * 100 / fileLength));
-                                        output.write(data, 0, count);
-                                    }}
-                    */
-
 
         }
 
@@ -782,36 +581,7 @@ public void latest(Context c){
         }
     }
 
-    public class geticon implements Runnable {
-        MaterialButton b;
-        String url;
 
-
-        public geticon(MaterialButton b, String url) {
-            this.b = b;
-            this.url = url;
-
-
-        }
-
-        @Override
-        public void run() {
-            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
-
-            Bitmap bitmap = null;
-            try {
-// Download Image from URL
-                InputStream input = new java.net.URL(url).openStream();
-// Decode Bitmap
-                //bitmap = BitmapFactory.decodeStream(input);
-            } catch (Exception e) {
-                Toast.makeText(context,e.toString(),Toast.LENGTH_SHORT).show();
-            }
-            b.setIcon(new BitmapDrawable(getResources(), bitmap));
-
-
-        }
-    }
 
     @SuppressWarnings("rawtypes")
     @SuppressLint("StaticFieldLeak")
@@ -881,10 +651,6 @@ public void latest(Context c){
 
 
                             System.out.println(ll);
-                            /*for (Button myButton : listabottoni
-                            ) {
-
-                            }*/
                             listabottoni.clear();
 
                         } catch (Exception e) {
@@ -996,7 +762,6 @@ public void latest(Context c){
                                         myButton.setText(String.valueOf(i + 1));
                                         if (episodelist.contains(items.get(i)))
                                             myButton.setTextColor(Color.BLUE);
-                                        //myButton.setTextColor(Color.parseColor("99FFFFFFF"));
                                         myButton.setOnClickListener(new buttonlisener2());
                                         listabottoni.add(myButton);
                                     }

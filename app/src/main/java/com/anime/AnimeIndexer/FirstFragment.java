@@ -77,8 +77,8 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
     final String port = "16384";
-    final String server = "http://serverparan.ddns.net:";
-    //final String server = "http://192.168.2.6:";
+    //final String server = "http://serverparan.ddns.net:";
+    final String server = "http://192.168.0.250:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     private final buttonlisener buttonl = new buttonlisener();
@@ -278,6 +278,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
     public void startdownload(View view) {
         this.view = view;
         Button bu = (Button) view;
+        currentanime=(((String)view.getTag()).split("/"))[((String)view.getTag()).split("/").length-2];
         bu.setTextColor(Color.BLUE);
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
@@ -628,7 +629,7 @@ public class FirstFragment extends Fragment implements SearchView.OnQueryTextLis
 
 
             MainActivity activity = (MainActivity) getActivity();
-            activity.setterfor2fragment(sresult.get(Integer.parseInt((String) bu.getTag())).get(0), bu.getText().toString().replace("\"", "").replaceAll("[^a-zA-Z0-9]", " "));
+            activity.setterfor2fragment(sresult.get(Integer.parseInt((String) bu.getTag())).get(0));
 
             // Replace whatever is in the fragment_container view with this fragment,
 // and add the transaction to the back stack

@@ -63,7 +63,8 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
 
 
     final String port = "16384";
-    final String server = "http://serverparan.ddns.net:";
+  //  final String server = "http://serverparan.ddns.net:";
+    final String server = "http://192.168.0.250:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     public List<String> episodelist;
@@ -176,6 +177,7 @@ public class SecondFragment extends Fragment  implements ViewTreeObserver.OnScro
         this.view = view;
         Button bu = (Button) view;
         bu.setTextColor(Color.BLUE);
+        currentanime=(((String)view.getTag()).split("/"))[((String)view.getTag()).split("/").length-2];
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
         }
