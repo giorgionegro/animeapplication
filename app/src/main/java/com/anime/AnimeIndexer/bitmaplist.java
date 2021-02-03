@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class bitmaplist implements Serializable {
-    private List<bitmaplink> Listabitmap;
+    private final List<bitmaplink> Listabitmap;
 
 
     public bitmaplist() {
@@ -33,19 +33,23 @@ public class bitmaplist implements Serializable {
         return null;
     }
 
-    public List<bitmaplink> getListabitmap() {
-        return Listabitmap;
-    }
+// --Commented out by Inspection START (03/02/2021 18:03):
+//    public List<bitmaplink> getListabitmap() {
+//        return Listabitmap;
+//    }
+// --Commented out by Inspection STOP (03/02/2021 18:03)
 
-    public void setListabitmap(List<bitmaplink> listabitmap) {
-        Listabitmap = listabitmap;
-    }
+// --Commented out by Inspection START (03/02/2021 18:03):
+//    public void setListabitmap(List<bitmaplink> listabitmap) {
+//        Listabitmap = listabitmap;
+//    }
+// --Commented out by Inspection STOP (03/02/2021 18:03)
 
     private static class bitmaplink implements Serializable {
 
 
-        public String link;
-        Bitmap bitmap;
+        public final String link;
+        final Bitmap bitmap;
 
 
         public bitmaplink(Bitmap b, String sourceUrl) {

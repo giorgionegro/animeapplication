@@ -62,13 +62,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void onUpgrade(SQLiteDatabase db) {
-        // on upgrade drop older tables
-        db.execSQL("DROP TABLE IF EXISTS " + DB_TABLE);
-
-        // create new table
-        onCreate(db);
-    }
+// --Commented out by Inspection START (03/02/2021 18:03):
+//    public void onUpgrade(SQLiteDatabase db) {
+//        // on upgrade drop older tables
+//        db.execSQL("DROP TABLE IF EXISTS " + DB_TABLE);
+//
+//        // create new table
+//        onCreate(db);
+//    }
+// --Commented out by Inspection STOP (03/02/2021 18:03)
 
     public void addEntry(String name, Bitmap image) throws SQLiteException {
         SQLiteDatabase database = this.getWritableDatabase();

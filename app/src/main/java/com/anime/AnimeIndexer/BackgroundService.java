@@ -18,16 +18,12 @@ public class BackgroundService extends Service {
         intent1.putExtra("com.dv.get.ACTION_LIST_PATH", (String) intent.getExtras().get("com.dv.get.ACTION_LIST_PATH")); // destination directory (default "Settings - Downloading - Folder for files")
         intent1.putExtra("com.android.extra.filename", (String) intent.getExtras().get("com.android.extra.filename"));
         intent1.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
-        try {
 
-            startActivity(intent1);
-            Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startActivity(intent1);
 
 
-            System.out.println("starting service");
+        System.out.println("starting service");
 
-        }  catch (Exception e) {
-            throw e;        }
         return START_STICKY;
     }
 
@@ -37,8 +33,5 @@ public class BackgroundService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        BackgroundService getService() {
-            return BackgroundService.this;
-        }
     }
 }

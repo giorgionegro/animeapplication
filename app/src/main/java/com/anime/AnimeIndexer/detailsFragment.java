@@ -1,6 +1,5 @@
 package com.anime.AnimeIndexer;
 
-import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +9,6 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -25,7 +23,6 @@ import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceManager;
 
@@ -54,30 +51,34 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
+public class detailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
 
-    final String port = "16384";
+    final String port = "16834/";
     //  final String server = "http://serverparan.ddns.net:";
-    final String server = "http://192.168.0.250:";
+    final String server = "http://192.168.0.211:";
     final List<List<String>> sresult = new ArrayList<>();
     public List<String> episodelist;
     String currentanime;
     String json;
-    View view;
+    // --Commented out by Inspection (03/02/2021 18:03):View view;
     LinearLayout ll;
     FileInputStream fi;
     ObjectInputStream oi;
+    GlobalVariable gb;
+
+
     String url;
-    DatabaseHelper dbh;
+    // --Commented out by Inspection (03/02/2021 18:03):DatabaseHelper dbh;
     ScrollView scrollView;
     int chunk;
     int chunckrequested;
     private String source;
 
 
-    public SecondFragment() {
+    public detailsFragment() {
     }
 
     @Override
@@ -89,11 +90,12 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-
+        MainActivity mn = (MainActivity) requireActivity();
+        gb = mn.getGb();
         chunk = 0;
         chunckrequested = 0;
         SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(getActivity());
+                PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         source = sharedPreferences.getString("list_preference_1", "/aw/");
 
@@ -105,7 +107,7 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
         ll.removeAllViews();
         scrollView = (ScrollView) ll.getParent();
         scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
-        File file = new File(getContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
+        File file = new File(requireContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
         System.out.println(getContext().getFilesDir());
         if (!file.exists()) {
             try {
@@ -155,14 +157,14 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
     }
 
     public void startdownload(View view) {
-        this.view = view;
         Button bu = (Button) view;
         bu.setTextColor(Color.BLUE);
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
+        currentanime = currentanime.replaceAll(" ", "");
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
         }
-        new savefile().run();
+        new savefile().start();
         new downloadTask(getActivity(), currentanime, bu.getText().toString()).execute((String) view.getTag());
 
 
@@ -200,14 +202,12 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
         protected Object doInBackground(Object... arg0) {
 
             try {
-                if (Build.VERSION.SDK_INT > 22) {
-                    requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
-                }
+                requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            final RequestQueue queue = Volley.newRequestQueue(getContext());
+            final RequestQueue queue = Volley.newRequestQueue(requireContext());
             url = url.replace('"', ' ');
             try {
 
@@ -251,7 +251,7 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
                                     }*/
 
 
-                                    new savefile().run();
+                                    new savefile().start();
 
                                     System.out.println(items);
 
@@ -269,7 +269,7 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
                                         listabottoni.add(myButton);
                                     }
                                     MainActivity m = (MainActivity) getActivity();
-                                    m.fablistsetter(listforfab);
+                                    Objects.requireNonNull(m).fablistsetter(listforfab);
                                     System.out.println(ll);
                                     for (Button myButton : listabottoni
                                     ) {
@@ -289,7 +289,7 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         chunk--;
-                        Toast.makeText(getContext(), "Error on reaching server, maybe there are no new episode D:, if not  please retry later", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(requireContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
                         System.out.println(error.getMessage());
                     }
                 });
@@ -330,7 +330,7 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
 
 
         public void run() {
-            File file = new File(getContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
+            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
             if (!file.exists()) {
                 try {
 
@@ -365,18 +365,22 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
 
     private class downloadTask extends AsyncTask<String, Integer, String> {
         private final String currentanime;
+        // --Commented out by Inspection START (03/02/2021 18:03):
+// --Commented out by Inspection START (03/02/2021 18:04):
         private final String numero;
         private final Context context;
-        int prev = 0;
-        List channelList = new ArrayList();
-        private NotificationManager mNotifyManager;
-        private NotificationCompat.Builder mBuilder;
-        private String chanel_id;
+//// --Commented out by Inspection STOP (03/02/2021 18:03)
+//        int prev = 0;
+// --Commented out by Inspection STOP (03/02/2021 18:04)
+// --Commented out by Inspection (03/02/2021 18:03):        // --Commented out by Inspection (03/02/2021// --Commented out by Inspection (03/02/2021 18:03): 18:03):List channelList = new ArrayList();
+        // --Commented out by Inspection (03/02/2021 18:04):private NotificationManager mNotifyManager;
+        // --Commented out by Inspection (03/02/2021 18:04):private NotificationCompat.Builder mBuilder;
+        // --Commented out by Inspection (03/02/2021 18:03):private String chanel_id;
 
         public downloadTask(Context context, String currentanime, String numero) {
-            this.context = context;
-            this.currentanime = (currentanime + " ").replaceAll("[^a-zA-Z0-9]", " ");
+            this.currentanime = (currentanime).replaceAll("[^a-zA-Z0-9]", " ").replaceAll(" ", "");
             this.numero = numero;
+            this.context = context;
 
 
         }
@@ -384,7 +388,6 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
 
         @Override
         protected String doInBackground(String... sUrl) {
-
 
             InputStream input = null;
             OutputStream output = null;
@@ -396,21 +399,37 @@ public class SecondFragment extends Fragment implements ViewTreeObserver.OnScrol
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
-            File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(url.getPath()));
-            if (!file.exists()) {
-                Intent intent = new Intent(getActivity(), BackgroundService.class);
-                Intent intent1 = intent.setClassName("com.dv.adm", "com.dv.adm.AEditor");
+            File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(Objects.requireNonNull(url).getPath()));
+            if (sUrl[0].contains("m3u8")) {
+                Uri uri = Uri.parse(sUrl[0]);
+                Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
+                vlcIntent.setDataAndTypeAndNormalize(uri, "video/*");
+                vlcIntent.putExtra("title", currentanime);
+                PackageManager packageManager = context.getPackageManager();
+                List<ResolveInfo> activities = packageManager.queryIntentActivities(vlcIntent,
+                        PackageManager.MATCH_DEFAULT_ONLY);
 
+                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".mp4");
+
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(sUrl[0]), "video/*");
+                startActivityForResult(intent, 10);
+
+
+            } else if (!file.exists()) {
+                Intent intent1 = new Intent("android.intent.action.MAIN");
+                intent1.setClassName("com.dv.adm", "com.dv.adm.AEditor");
+                intent1.putExtra("Referer", gb.get_references_by_entry(source));
 
                 intent1.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
-
                 intent1.putExtra("com.dv.get.ACTION_LIST_PATH", Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime); // destination directory (default "Settings - Downloading - Folder for files")
                 intent1.putExtra("com.dv.get.ACTION_LIST_OPEN", false);
                 intent1.putExtra("com.android.extra.filename", currentanime + numero + ".mp4");
                 try {
                     System.out.println("starting service");
 
-                    getActivity().startActivity(intent1);
+                    requireActivity().startActivity(intent1);
 
                 } catch (ActivityNotFoundException e) {
                     try {
