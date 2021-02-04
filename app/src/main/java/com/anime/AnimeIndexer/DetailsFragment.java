@@ -53,7 +53,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class detailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
+public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
 
     final String port = "16834/";
@@ -63,6 +63,7 @@ public class detailsFragment extends Fragment implements ViewTreeObserver.OnScro
     public List<String> episodelist;
     String currentanime;
     String json;
+    boolean streaming;
     // --Commented out by Inspection (03/02/2021 18:03):View view;
     LinearLayout ll;
     FileInputStream fi;
@@ -78,7 +79,7 @@ public class detailsFragment extends Fragment implements ViewTreeObserver.OnScro
     private String source;
 
 
-    public detailsFragment() {
+    public DetailsFragment() {
     }
 
     @Override
@@ -97,8 +98,8 @@ public class detailsFragment extends Fragment implements ViewTreeObserver.OnScro
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
-        source = sharedPreferences.getString("list_preference_1", "/aw/");
-
+        source = sharedPreferences.getString("sources", "/aw/");
+        streaming = sharedPreferences.getBoolean("Streaming",true);
         MainActivity ma = (MainActivity) getActivity();
         List l = ma.getter();
         url = (String) l.get(0);
@@ -157,6 +158,11 @@ public class detailsFragment extends Fragment implements ViewTreeObserver.OnScro
     }
 
     public void startdownload(View view) {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(requireActivity());
+
+        source = sharedPreferences.getString("sources", "/aw/");
+        streaming = sharedPreferences.getBoolean("Streaming",true);
         Button bu = (Button) view;
         bu.setTextColor(Color.BLUE);
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
@@ -400,16 +406,9 @@ public class detailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 e.printStackTrace();
             }
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(Objects.requireNonNull(url).getPath()));
-            if (sUrl[0].contains("m3u8")) {
-                Uri uri = Uri.parse(sUrl[0]);
-                Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
-                vlcIntent.setDataAndTypeAndNormalize(uri, "video/*");
-                vlcIntent.putExtra("title", currentanime);
-                PackageManager packageManager = context.getPackageManager();
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(vlcIntent,
-                        PackageManager.MATCH_DEFAULT_ONLY);
 
-                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".mp4");
+            if (sUrl[0].contains("m3u8")|streaming) {
+
 
                 Intent intent = new Intent();
                 intent.setAction(android.content.Intent.ACTION_VIEW);
@@ -417,7 +416,8 @@ public class detailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 startActivityForResult(intent, 10);
 
 
-            } else if (!file.exists()) {
+            }
+            else if (!file.exists()) {
                 Intent intent1 = new Intent("android.intent.action.MAIN");
                 intent1.setClassName("com.dv.adm", "com.dv.adm.AEditor");
                 intent1.putExtra("Referer", gb.get_references_by_entry(source));

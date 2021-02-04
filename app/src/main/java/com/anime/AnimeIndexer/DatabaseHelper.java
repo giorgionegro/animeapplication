@@ -91,7 +91,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
 
                 wordList.add(cursor.getString(0), getImage(cursor.getBlob(1)));
-                System.out.println(cursor.getString(0));
                 Thread.sleep(10);
             } while (movecursor(cursor, 1));
         }

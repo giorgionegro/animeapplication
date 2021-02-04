@@ -11,6 +11,9 @@ public class GlobalVariable {
         List Entry = new ArrayList<String>();
         List Values = new ArrayList<String>();
         List references = new ArrayList();
+        Entry.clear();
+        Values.clear();
+        references.clear();
         for (List l : sresult) {
             Entry.add(l.get(0));
             Values.add(l.get(1));
@@ -20,6 +23,7 @@ public class GlobalVariable {
                 references.add("");
             }
         }
+
 
         this.Entry = (CharSequence[]) Entry.toArray(new CharSequence[Entry.size()]);
         this.Entryvalues = (CharSequence[]) Values.toArray(new CharSequence[Values.size()]);

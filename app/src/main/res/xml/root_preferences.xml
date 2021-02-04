@@ -1,11 +1,16 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="Preference category">
+    <PreferenceCategory>
 
         <ListPreference
             android:defaultValue="true"
             android:entries="@array/reply_values"
             android:entryValues="@array/sources"
-            android:key="list_preference_1"
+            android:key="sources"
             android:title="Sources" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="Streaming"
+            android:summary="if checked always stream instead of downloading"
+            android:title="Streaming" />
     </PreferenceCategory>
 </PreferenceScreen>

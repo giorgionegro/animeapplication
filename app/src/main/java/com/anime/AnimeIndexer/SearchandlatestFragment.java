@@ -12,8 +12,11 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -91,10 +94,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     bitmaplist listabitm;
     DatabaseHelper dbh;
     private String source;
+    boolean streaming;
+    List<Preferiti> prefs;
 
-    public void setGb(GlobalVariable gb) {
-        this.gb = gb;
-    }
+
 
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
@@ -139,21 +142,22 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         Objects.requireNonNull(m).fablistsetter(null);
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(m);
-        source = sharedPreferences.getString("list_preference_1", "/aw/");
+        source = sharedPreferences.getString("sources", "/aw/");
+        streaming = sharedPreferences.getBoolean("Streaming",true);
 
 
         verifyStoragePermissions(getActivity());
         AndroidNetworking.initialize(requireContext());
-        dolatest();
+        new Latest().start();
         return inflater.inflate(R.layout.fragment_first, container, false);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
-
-        source = sharedPreferences.getString("list_preference_1", "/aw/");
-
+        prefs=FavoriteFragment.readfile(requireContext().getFilesDir().getAbsolutePath());
+        source = sharedPreferences.getString("sources", "/aw/");
+        streaming = sharedPreferences.getBoolean("Streaming",true);
         super.onViewCreated(view, savedInstanceState);
         SearchView search = view.findViewWithTag("ricerca");
         search.setOnQueryTextListener(this);
@@ -210,7 +214,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
 
         }
-        dolatest();
+        new Latest().start();
         System.out.println(this.getId());
     }
 
@@ -222,7 +226,11 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         ll.removeAllViews();
 
         try {
-
+            MainActivity m = (MainActivity) getActivity();
+            Objects.requireNonNull(m).fablistsetter(null);
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(m);
+            source = sharedPreferences.getString("sources", "/aw/");
             System.out.println("asd");
             new Search(s).start();
         } catch (Exception e) {
@@ -236,29 +244,13 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         return false;
     }
 
-    public void newButtons() {
+    public void startdownload(View view)//some preparation before starting the download
+    {
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
-        List<Button> listabottoni = new ArrayList<>();
-        for (int i = 0; i < sresult.size(); i++) {
-            button myButton = new button(requireContext(), sresult.get(i).get(2));
-            myButton.setTag(String.valueOf(i));
-            myButton.setText(sresult.get(i).get(1));
-            myButton.setOnClickListener(buttonl);
-            listabottoni.add(myButton);
-        }
-
-
-        System.out.println(ll);
-        for (Button myButton : listabottoni
-        ) {
-            ll.addView(myButton);
-        }
-        listabottoni.clear();
-
-
-    }
-
-    public void startdownload(View view) {
+        source = sharedPreferences.getString("sources", "/aw/");
+        streaming = sharedPreferences.getBoolean("Streaming",true);
         Button bu = (Button) view;
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
         bu.setTextColor(Color.BLUE);
@@ -275,11 +267,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
     }
 
-    public void dolatest() {
-        new Latest().start();
-
-
-    }
 
     public class savefile extends Thread {
 
@@ -353,7 +340,17 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
 
                                     }
-                                    newButtons();
+                                    for (int i = 0; i < sresult.size(); i++) {
+                                        button myButton = new button(requireContext(), sresult.get(i).get(2));
+                                        myButton.setTag(String.valueOf(i));
+                                        myButton.setText(sresult.get(i).get(1));
+                                        myButton.setOnClickListener(buttonl);
+                                        ll.addView(myButton);
+                                    }
+
+
+
+
 
                                 } catch (Exception e) {
 
@@ -422,7 +419,17 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 e.printStackTrace();
             }
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(Objects.requireNonNull(url).getPath()));
-            if (!file.exists()) {
+            if(streaming){
+                Intent intent = new Intent();
+                intent.setAction(android.content.Intent.ACTION_VIEW);
+                intent.setDataAndType(Uri.parse(sUrl[0]), "video/*");
+                startActivityForResult(intent, 10);
+
+
+
+
+            }
+            else if (!file.exists()) {
                 Intent intent1 = new Intent("android.intent.action.MAIN");
                 intent1.setClassName("com.dv.adm", "com.dv.adm.AEditor");
                 intent1.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
@@ -449,31 +456,12 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                     e.printStackTrace();
                 }
             } else {
-                int vlcRequestCode = 42;
-                Uri uri = Uri.parse(file.getPath());
-                Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
-                vlcIntent.setDataAndTypeAndNormalize(uri, "video/*");
-                vlcIntent.putExtra("title", currentanime);
-                PackageManager packageManager = context.getPackageManager();
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(vlcIntent,
-                        PackageManager.MATCH_DEFAULT_ONLY);
-
-                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".mp4");
-
                 Intent intent = new Intent();
                 intent.setAction(android.content.Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.parse(file.getPath()), "video/*");
                 startActivityForResult(intent, 10);
 
-                if (activities.size() > 0) {
-                    //startActivityForResult(vlcIntent, vlcRequestCode);
-                } else {
 
-
-                    Toast.makeText(getContext(), "An Error Occurred! missing video player", Toast.LENGTH_SHORT).show();
-
-
-                }
 
 
             }
@@ -526,7 +514,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
     public class button extends MaterialButton {
         public final String imgurl;
-
+        public Drawable original=null;
         public button(@NonNull Context context, String imgurl) {
             super(context);
             this.imgurl = imgurl;
@@ -553,6 +541,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
                 this.setIconTint(null);
                 this.setIcon(new BitmapDrawable(Resources.getSystem(), b));
+                original=new BitmapDrawable(getResources(),  drawableToBitmap(this.getIcon()).copy(b.getConfig(),true));
             }
         }
 
@@ -611,7 +600,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
                             b.setIconTint(null);
                             b.setIcon(new BitmapDrawable(Resources.getSystem(), fbit));
-
+                            original=new BitmapDrawable(getResources(),  drawableToBitmap(b.getIcon()).copy(fbit.getConfig(),true));
 
                         }
                     });
@@ -696,6 +685,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                                 myButton.setTag(sresult.get(i).get(0));
                                 myButton.setText(sresult.get(i).get(1));
                                 myButton.setOnClickListener(new buttonlisener2());
+                                myButton.setOnLongClickListener(new longclocklistener());
                                 ll.addView(myButton);
                             }
 
@@ -746,6 +736,64 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
     }
 
+    class longclocklistener implements View.OnLongClickListener {
+        @Override
+        public boolean onLongClick(View v) {
+            button b = (button) v;
+            if(!removeduplicate((String)b.getTag())){
+                prefs.add(new Preferiti((String)b.getTag(),source,b.imgurl));
+                Bitmap icon = BitmapFactory.decodeResource(requireContext().getResources(),
+                        R.drawable.star);
+
+                b.setIcon(new BitmapDrawable(getResources(),overlay(drawableToBitmap(b.getIcon()),icon)));
+            }else{
+                b.setIcon(new BitmapDrawable(getResources(),  drawableToBitmap(b.original).copy(drawableToBitmap(b.original).getConfig(),true)));
+            }
+            FavoriteFragment.writefile(prefs,requireContext().getFilesDir().getAbsolutePath());
+            System.out.println(prefs.toString());
+            return true;
+        }
+    }
+
+    private boolean removeduplicate(String url){
+            boolean b =false;
+            Preferiti pr=null;
+            for(Preferiti p:prefs)
+                if (url.equals(p.getUrl())) {
+                    b = true;
+                    pr=p;
+                }
+            prefs.remove(pr);
+            return b;
+
+
+
+    }
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
+        Canvas canvas = new Canvas(bmp1);
+        canvas.drawBitmap(bmp2, 0,0, null);
+        return bmp1;
+    }
+    public static Bitmap drawableToBitmap (Drawable drawable) {
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if(bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;}
 }
 
 

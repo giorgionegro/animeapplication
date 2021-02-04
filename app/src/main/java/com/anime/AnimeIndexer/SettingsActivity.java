@@ -52,7 +52,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            ListPreference sources = findPreference("list_preference_1");
+            ListPreference sources = findPreference("sources");
             System.out.println();
             SettingsActivity sa=(SettingsActivity)requireActivity();
             Thread i= new Info(server,port,sources);
@@ -82,6 +82,7 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    sresult.clear();
                     requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
                     RequestQueue queue = Volley.newRequestQueue(requireContext());
                     String url = server + port + "/info";
@@ -104,6 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
                             System.out.println("asd");
                             gb=new GlobalVariable(sresult);
                             System.err.println("info");
+
                             sf.setEntries(gb.Entry);
                             sf.setEntryValues(gb.Entryvalues);
 
