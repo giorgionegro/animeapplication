@@ -3,10 +3,15 @@ package com.anime.AnimeIndexer;
 import java.io.Serializable;
 
 public class Preferiti implements Serializable {
-    public Preferiti(String url, String source, String img) {
+    private final String url;
+    private final String source;
+    private final String img;
+    private final String title;
+    public Preferiti(String url, String source, String img, String title) {
         this.url = url;
         this.source = source;
         this.img = img;
+        this.title = title;
     }
 
     public String getUrl() {
@@ -21,7 +26,8 @@ public class Preferiti implements Serializable {
         return img;
     }
 
-    private String url;
-    private String source;
-    private String img;
+    public String getTitle() {
+        return title;
+    }
+
 }

@@ -6,15 +6,12 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    List sresult = new ArrayList();
+    final List sresult = new ArrayList();
     private String source;
 
     public GlobalVariable getGb() {
@@ -48,10 +45,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Context context;
-    View view2;
     FileInputStream fi;
     ObjectInputStream oi;
     GlobalVariable gb;
+    String source2="/aw/";
     // --Commented out by Inspection (03/02/2021 18:04):bitmaplist listabitm;
     // --Commented out by Inspection (03/02/2021 18:03):DatabaseHelper dbh;
     private String currentnanimeforfragment;
@@ -60,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
     final String port = "16834";
     //final String server = "http://serverparan.ddns.net:";
     final String server = "http://192.168.0.211:";
-    public void setterfor2fragment(String url) {
-        this.urlforfragment = url;
+    public void setterfor2fragment(String url,String source2) {
+        this.urlforfragment = url;this.source2 = source2;
     }
 
     public void fablistsetter(List l) {
@@ -73,12 +70,14 @@ public class MainActivity extends AppCompatActivity {
 
         List result = new ArrayList();
         result.add(urlforfragment);
-        result.add(currentnanimeforfragment);
 
+        result.add(currentnanimeforfragment);
+        result.add(source2);
 
         return result;
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences sharedPreferences =
@@ -87,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
       source = sharedPreferences.getString("list_preference_1", "/aw/");
         setTheme(R.style.Theme_MaterialComponents_DayNight); //imposta tema scuro
 
-        System.err.println("settings");
+        System.err.println("setting");
 
 
         super.onCreate(savedInstanceState);
@@ -97,8 +96,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(view.getContext());
 
                 if (listforfab == null) return;
                 System.out.println(listforfab.toString());
@@ -146,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fm = getSupportFragmentManager();
         context = fm.getFragments().get(0).getContext();
         new Info().start();
-        File file = new File(this.getApplicationContext().getFilesDir() + File.pathSeparator + "myObjects.txt");//file episodi gia' scaricati
+        File file = new File(this.getApplicationContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");//file episodi gia' scaricati
         if (!file.exists()) {
             try {
 
@@ -183,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             episodelist = new ArrayList<>();
         }
+        //noinspection ConstantConditions
         if (episodelist == null) {
             episodelist = new ArrayList<>();
 
@@ -201,40 +199,56 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        SharedPreferences sharedPreferences =
-                PreferenceManager.getDefaultSharedPreferences(this);
+
         FragmentManager fm = getSupportFragmentManager();
 
         if (id == R.id.latest) {
             try {
                 NavHostFragment.findNavController(fm.getFragments().get(0))
-                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
+                        .navigate(R.id.action_global_FirstFragment);
                 System.out.println("good");
                 Thread.sleep(1000);
             } catch (Exception e) {
-                NavHostFragment.findNavController(fm.getFragments().get(0))
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-                NavHostFragment.findNavController(fm.getFragments().get(0))
-                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
+                e.printStackTrace();                }
 
 
-                System.out.println(e.getMessage());
-            }
-            view2 = fm.getFragments().get(0).getView();
-            context = fm.getFragments().get(0).getContext();
-            LinearLayout ll = (LinearLayout) ((ScrollView) view2.findViewById(R.id.elenco_anime)).getChildAt(0);
 
-            try {
-                androidx.fragment.app.Fragment f = fm.getFragments().get(0);
-
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
         } else if (id == R.id.action_settings) {
             System.out.println("asd");
             Intent intent = new Intent(this,
                     SettingsActivity.class);
             startActivity(intent);
+
+
+        }else if (id == R.id.favorite) {
+
+            try {
+                NavHostFragment.findNavController(fm.getFragments().get(0))
+                        .navigate(R.id.action_global_favoriteFragment);
+                System.out.println("good");
+                Thread.sleep(1000);
+            } catch (Exception e) {
+
+
+                System.out.println(e.getMessage());
+            }
+
+
+
+
+
+        }else if (id == R.id.downloaded) {
+            try {
+                NavHostFragment.findNavController(fm.getFragments().get(0))
+                        .navigate(R.id.action_global_downloadedFragment);
+                System.out.println("good");
+                Thread.sleep(1000);
+            } catch (Exception e) {
+
+
+                System.out.println(e.getMessage());
+            }
+
 
 
         }

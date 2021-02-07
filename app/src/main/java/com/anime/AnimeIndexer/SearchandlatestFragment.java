@@ -2,19 +2,16 @@ package com.anime.AnimeIndexer;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -26,7 +23,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
@@ -34,7 +30,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.preference.PreferenceManager;
@@ -61,7 +56,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -93,10 +87,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     ObjectInputStream oi;
     bitmaplist listabitm;
     DatabaseHelper dbh;
-    private String source;
     boolean streaming;
     List<Preferiti> prefs;
-
+    private String source;
+    private List<downloadedserieselement> serieslist;
 
 
     public static void verifyStoragePermissions(Activity activity) {
@@ -111,6 +105,28 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                     REQUEST_EXTERNAL_STORAGE
             );
         }
+    }
+
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+        Bitmap bitmap = null;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if (bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 
     @Override
@@ -143,7 +159,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(m);
         source = sharedPreferences.getString("sources", "/aw/");
-        streaming = sharedPreferences.getBoolean("Streaming",true);
+        streaming = sharedPreferences.getBoolean("Streaming", true);
 
 
         verifyStoragePermissions(getActivity());
@@ -155,9 +171,9 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
-        prefs=FavoriteFragment.readfile(requireContext().getFilesDir().getAbsolutePath());
+        prefs = FavoriteFragment.readfile(requireContext().getFilesDir().getAbsolutePath());
         source = sharedPreferences.getString("sources", "/aw/");
-        streaming = sharedPreferences.getBoolean("Streaming",true);
+        streaming = sharedPreferences.getBoolean("Streaming", true);
         super.onViewCreated(view, savedInstanceState);
         SearchView search = view.findViewWithTag("ricerca");
         search.setOnQueryTextListener(this);
@@ -172,8 +188,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 .setConnectTimeout(30_000)
                 .build();
         PRDownloader.initialize(getContext(), config);
-        File file = new File(requireContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
-        System.out.println(getContext().getFilesDir());
+        File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
+        System.out.println(requireContext().getFilesDir());
         if (!file.exists()) {
             try {
 
@@ -214,6 +230,50 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
 
         }
+        file = new File(requireContext().getFilesDir() + File.pathSeparator + "seriedownloaded.txt");
+        System.out.println(requireContext().getFilesDir());
+        if (!file.exists()) {
+            try {
+
+                file.createNewFile();
+
+                System.out.println("file created");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+
+            fi = new FileInputStream(file);
+            oi = new ObjectInputStream(fi);
+
+
+            serieslist = (List<downloadedserieselement>) oi.readObject();
+
+            System.out.println(serieslist.toString());
+            oi.close();
+            fi.close();
+
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("File not found");
+            serieslist = new ArrayList<>();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error initializing stream");
+            serieslist = new ArrayList<>();
+        } catch (Exception e) {
+            e.printStackTrace();
+            serieslist = new ArrayList<>();
+        }
+        if (serieslist == null) {
+            serieslist = new ArrayList<>();
+
+
+        }
+
+
         new Latest().start();
         System.out.println(this.getId());
     }
@@ -233,6 +293,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             source = sharedPreferences.getString("sources", "/aw/");
             System.out.println("asd");
             new Search(s).start();
+            prefs = FavoriteFragment.readfile(requireContext().getFilesDir().getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -246,15 +307,21 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
     public void startdownload(View view)//some preparation before starting the download
     {
+
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         source = sharedPreferences.getString("sources", "/aw/");
-        streaming = sharedPreferences.getBoolean("Streaming",true);
-        Button bu = (Button) view;
+        streaming = sharedPreferences.getBoolean("Streaming", true);
+        button bu = (button) view;
+
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
         bu.setTextColor(Color.BLUE);
-        currentanime = currentanime.replaceAll("","");
+        currentanime = currentanime.replaceAll("", "");
+        if(!isinlistbyname(serieslist,currentanime)){
+            serieslist.add(new downloadedserieselement(currentanime,bu.imgurl));
+            new savefileseries().start();
+        }
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
         }
@@ -267,11 +334,66 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
     }
 
+    private boolean is_in_favorite(String imgurl) {
+        for (Preferiti p : prefs) {
+            if (imgurl != null)
+                try {
+                    if (imgurl.equals(p.getImg())) {
+                        return true;
+
+                    }
+                } catch (Exception e) {
+                    return false;
+                }
+
+
+        }
+
+        return false;
+
+    }
+
+    private boolean removeduplicate(String url) {
+        boolean b = false;
+        Preferiti pr = null;
+        for (Preferiti p : prefs)
+            if (url.equals(p.getUrl())) {
+                b = true;
+                pr = p;
+            }
+        prefs.remove(pr);
+        return b;
+
+
+    }
+
+    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
+        Canvas canvas = new Canvas(bmp1);
+        canvas.drawBitmap(bmp2, 0, 0, null);
+        return bmp1;
+    }
+
+    private void drawoverlay(View v) {
+        button b = (button) v;
+        Bitmap icon = BitmapFactory.decodeResource(requireContext().getResources(),
+                R.drawable.star);
+        b.setIcon(new BitmapDrawable(getResources(), overlay(drawableToBitmap(b.getIcon()), icon)));
+
+    }
+
+    private boolean isinlistbyname(List<downloadedserieselement> list, String name) {
+        for (downloadedserieselement element : list) {
+            if (name.equals(element.getName())) return true;
+        }
+        return false;
+
+
+    }
 
     public class savefile extends Thread {
 
         public void run() {
-            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
+            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
             if (!file.exists()) {
                 try {
 
@@ -295,8 +417,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 f.close();
 
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -326,7 +446,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-                                System.out.println("sadsad");
+
                                 json = response;
                                 System.out.println(json);
                                 try {
@@ -342,14 +462,12 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                                     }
                                     for (int i = 0; i < sresult.size(); i++) {
                                         button myButton = new button(requireContext(), sresult.get(i).get(2));
-                                        myButton.setTag(String.valueOf(i));
+                                        myButton.setTag(sresult.get(i).get(0));
                                         myButton.setText(sresult.get(i).get(1));
                                         myButton.setOnClickListener(buttonl);
+                                        myButton.setOnLongClickListener(new longclocklistener());
                                         ll.addView(myButton);
                                     }
-
-
-
 
 
                                 } catch (Exception e) {
@@ -370,7 +488,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 });
                 System.out.println("sfdad");
 
-
+                System.out.println(url);
 // Add the request to the RequestQueue.
                 queue.add(stringRequest);
 
@@ -387,7 +505,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     private class downloadTask extends AsyncTask<String, Integer, String> {
         private final String currentanime;
         private final String numero;
-        private final Context context;
         // --Commented out by Inspection (03/02/2021 18:04):int prev = 0;
         // --Commented out by Inspection (03/02/2021// --Commented out by Inspection (03/02/2021 18:04): 18:04):List channelList = new ArrayList();
         // --Commented out by Inspection (03/02/2021 18:04):private NotificationManager mNotifyManager;
@@ -395,7 +512,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         // --Commented out by Inspection (03/02/2021 18:04):private String chanel_id;
 
         public downloadTask(Context context, String currentanime, String numero) {
-            this.context = context;
             this.currentanime = (currentanime + " ").replaceAll("[^a-zA-Z0-9]", " ");
             this.numero = numero;
 
@@ -405,12 +521,9 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
         @Override
         protected String doInBackground(String... sUrl) {
-            MainActivity mn= (MainActivity)requireActivity();
-            gb= mn.getGb();
+            MainActivity mn = (MainActivity) requireActivity();
+            gb = mn.getGb();
 
-            InputStream input = null;
-            OutputStream output = null;
-            HttpURLConnection connection;
 
             URL url = null;
             try {
@@ -419,17 +532,15 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 e.printStackTrace();
             }
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(Objects.requireNonNull(url).getPath()));
-            if(streaming){
+            if (streaming) {
                 Intent intent = new Intent();
                 intent.setAction(android.content.Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.parse(sUrl[0]), "video/*");
                 startActivityForResult(intent, 10);
 
 
+            } else if (!file.exists()) {
 
-
-            }
-            else if (!file.exists()) {
                 Intent intent1 = new Intent("android.intent.action.MAIN");
                 intent1.setClassName("com.dv.adm", "com.dv.adm.AEditor");
                 intent1.putExtra("com.dv.get.ACTION_LIST_ADD", sUrl[0]);
@@ -462,8 +573,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 startActivityForResult(intent, 10);
 
 
-
-
             }
 
 
@@ -472,18 +581,59 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
 
     }
+    private class savefileseries extends Thread {
+
+        public void run() {
+            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "seriedownloaded.txt");
+            if (!file.exists()) {
+                try {
+
+                    file.createNewFile();
+
+                    System.out.println("file created");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                FileOutputStream f = new FileOutputStream(file);
+                ObjectOutputStream o = new ObjectOutputStream(f);
+                System.out.println("File opened");
+                // Write objects to file
+                List su = new ArrayList(serieslist);
+
+                o.writeObject(su);
+
+                o.close();
+                f.close();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
 
     public class buttonlisener implements View.OnClickListener {
 
         @Override
         public void onClick(View view) {
-            Button bu = (Button) view;
+            button bu = (button) view;
+            currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 1];
+            currentanime = currentanime.replaceAll("", "");
+            if(!isinlistbyname(serieslist,currentanime)){
 
+                serieslist.add(new downloadedserieselement(currentanime, bu.imgurl));
+                new savefileseries().start();
+            }
             // Cr
 
 
             MainActivity activity = (MainActivity) getActivity();
-            Objects.requireNonNull(activity).setterfor2fragment(sresult.get(Integer.parseInt((String) bu.getTag())).get(0));
+            Objects.requireNonNull(activity).setterfor2fragment((String) bu.getTag(), source);
 
             // Replace whatever is in the fragment_container view with this fragment,
 // and add the transaction to the back stack
@@ -514,19 +664,15 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
     public class button extends MaterialButton {
         public final String imgurl;
-        public Drawable original=null;
+        public Drawable original = null;
+
         public button(@NonNull Context context, String imgurl) {
             super(context);
             this.imgurl = imgurl;
             if (listabitm.getbitbylink(this.imgurl) == null) {
                 downsetbitmap dsb = new downsetbitmap(this);
                 dsb.start();
-                try {
-                    dsb.join();
-                } catch (InterruptedException e) {
-                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
+
             } else {
 
                 Bitmap b = listabitm.getbitbylink(this.imgurl);
@@ -541,7 +687,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
                 this.setIconTint(null);
                 this.setIcon(new BitmapDrawable(Resources.getSystem(), b));
-                original=new BitmapDrawable(getResources(),  drawableToBitmap(this.getIcon()).copy(b.getConfig(),true));
+                original = new BitmapDrawable(getResources(), drawableToBitmap(this.getIcon()).copy(b.getConfig(), true));
+                if (is_in_favorite(imgurl)) {
+                    drawoverlay(this);
+                }
             }
         }
 
@@ -574,7 +723,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 }
                 InputStream input = null;
                 try {
-                    input = connection.getInputStream();
+                    input = Objects.requireNonNull(connection).getInputStream();
                 } catch (Exception e) {
                     Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
@@ -600,8 +749,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
                             b.setIconTint(null);
                             b.setIcon(new BitmapDrawable(Resources.getSystem(), fbit));
-                            original=new BitmapDrawable(getResources(),  drawableToBitmap(b.getIcon()).copy(fbit.getConfig(),true));
-
+                            original = new BitmapDrawable(getResources(), drawableToBitmap(b.getIcon()).copy(fbit.getConfig(), true));
+                            if (is_in_favorite(imgurl)) {
+                                drawoverlay(b);
+                            }
                         }
                     });
 
@@ -629,7 +780,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     }
 
     public class Latest extends Thread {
-        String url2;
 
         public Latest() {
 
@@ -681,11 +831,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                             }
                             List<button> listabottoni = new ArrayList<>();
                             for (int i = 0; i < sresult.size(); i++) {
-                                button myButton = new button(getContext(), sresult.get(i).get(2));
+                                button myButton = new button(requireContext(), sresult.get(i).get(2));
                                 myButton.setTag(sresult.get(i).get(0));
                                 myButton.setText(sresult.get(i).get(1));
                                 myButton.setOnClickListener(new buttonlisener2());
-                                myButton.setOnLongClickListener(new longclocklistener());
                                 ll.addView(myButton);
                             }
 
@@ -726,6 +875,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 queue.add(stringRequest);
 
             } catch (Exception e) {
+                e.printStackTrace();
                 System.err.println(e.getMessage());
                 Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
@@ -740,60 +890,20 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         @Override
         public boolean onLongClick(View v) {
             button b = (button) v;
-            if(!removeduplicate((String)b.getTag())){
-                prefs.add(new Preferiti((String)b.getTag(),source,b.imgurl));
+            if (!removeduplicate((String) b.getTag())) {
+                prefs.add(new Preferiti((String) b.getTag(), source, b.imgurl, b.getText().toString()));
                 Bitmap icon = BitmapFactory.decodeResource(requireContext().getResources(),
                         R.drawable.star);
 
-                b.setIcon(new BitmapDrawable(getResources(),overlay(drawableToBitmap(b.getIcon()),icon)));
-            }else{
-                b.setIcon(new BitmapDrawable(getResources(),  drawableToBitmap(b.original).copy(drawableToBitmap(b.original).getConfig(),true)));
+                b.setIcon(new BitmapDrawable(getResources(), overlay(drawableToBitmap(b.getIcon()), icon)));
+            } else {
+                b.setIcon(new BitmapDrawable(getResources(), drawableToBitmap(b.original).copy(drawableToBitmap(b.original).getConfig(), true)));
             }
-            FavoriteFragment.writefile(prefs,requireContext().getFilesDir().getAbsolutePath());
+            FavoriteFragment.writefile(prefs, requireContext().getFilesDir().getAbsolutePath());
             System.out.println(prefs.toString());
             return true;
         }
     }
-
-    private boolean removeduplicate(String url){
-            boolean b =false;
-            Preferiti pr=null;
-            for(Preferiti p:prefs)
-                if (url.equals(p.getUrl())) {
-                    b = true;
-                    pr=p;
-                }
-            prefs.remove(pr);
-            return b;
-
-
-
-    }
-    private Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
-        Canvas canvas = new Canvas(bmp1);
-        canvas.drawBitmap(bmp2, 0,0, null);
-        return bmp1;
-    }
-    public static Bitmap drawableToBitmap (Drawable drawable) {
-        Bitmap bitmap = null;
-
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
-                return bitmapDrawable.getBitmap();
-            }
-        }
-
-        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
-            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-        } else {
-            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        }
-
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;}
 }
 
 

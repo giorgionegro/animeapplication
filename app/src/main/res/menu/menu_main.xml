@@ -10,4 +10,10 @@
     <item
         android:id="@+id/latest"
         android:title="@string/latest" />
+    <item
+        android:id="@+id/favorite"
+        android:title="@string/Favorite" />
+    <item
+        android:id="@+id/downloaded"
+        android:title="@string/Downloaded" />
 </menu>

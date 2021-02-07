@@ -25,8 +25,8 @@ public class GlobalVariable {
         }
 
 
-        this.Entry = (CharSequence[]) Entry.toArray(new CharSequence[Entry.size()]);
-        this.Entryvalues = (CharSequence[]) Values.toArray(new CharSequence[Values.size()]);
+        this.Entry = (CharSequence[]) Entry.toArray(new CharSequence[0]);
+        this.Entryvalues = (CharSequence[]) Values.toArray(new CharSequence[0]);
         this.references = references;
     }
 

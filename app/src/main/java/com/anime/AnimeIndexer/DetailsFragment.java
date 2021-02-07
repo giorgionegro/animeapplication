@@ -81,7 +81,14 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
     public DetailsFragment() {
     }
-
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        //noinspection ConstantConditions
+        if (context == null)
+            context = context.getApplicationContext();
+    }
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -91,6 +98,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+
         MainActivity mn = (MainActivity) requireActivity();
         gb = mn.getGb();
         chunk = 0;
@@ -98,19 +106,20 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
-        source = sharedPreferences.getString("sources", "/aw/");
-        streaming = sharedPreferences.getBoolean("Streaming",true);
+
+                streaming = sharedPreferences.getBoolean("Streaming",true);
         MainActivity ma = (MainActivity) getActivity();
-        List l = ma.getter();
+        List l = Objects.requireNonNull(ma).getter();
         url = (String) l.get(0);
         currentanime = (String) l.get(1);
+        source =(String)l.get(2);
         ll = view.findViewById(R.id.elencoepisodi);
         ll.removeAllViews();
         scrollView = (ScrollView) ll.getParent();
         scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
-        File file = new File(requireContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
-        System.out.println(getContext().getFilesDir());
-        if (!file.exists()) {
+        File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
+        System.out.println(requireContext().getFilesDir());
+
             try {
 
                 file.createNewFile();
@@ -119,7 +128,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+
         try {
 
             fi = new FileInputStream(file);
@@ -167,6 +176,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         bu.setTextColor(Color.BLUE);
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
         currentanime = currentanime.replaceAll(" ", "");
+
         if (!episodelist.contains(view.getTag())) {
             episodelist.add((String) view.getTag());
         }
@@ -206,7 +216,11 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
         @Override
         protected Object doInBackground(Object... arg0) {
-
+            MainActivity ma = (MainActivity) getActivity();
+            List l = Objects.requireNonNull(ma).getter();
+            url = (String) l.get(0);
+            currentanime = (String) l.get(1);
+            source =(String)l.get(2);
             try {
                 requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
             } catch (Exception e) {
@@ -218,7 +232,6 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
             try {
 
 
-                final List listaepisode = new ArrayList();
                 String url2 = server + port + source + "//dettagli?url=" + url + "&chunk=" + chunk;
                 url2 = url2.replaceAll("\\s+", "");
                 final List listforfab = new ArrayList();
@@ -336,7 +349,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
 
         public void run() {
-            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "myObjects.txt");
+            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
             if (!file.exists()) {
                 try {
 
@@ -360,8 +373,6 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 f.close();
 
 
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -395,9 +406,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         @Override
         protected String doInBackground(String... sUrl) {
 
-            InputStream input = null;
-            OutputStream output = null;
-            HttpURLConnection connection;
+
 
             URL url = null;
             try {
@@ -444,34 +453,16 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                     e.printStackTrace();
                 }
             } else {
-                int vlcRequestCode = 42;
-                Uri uri = Uri.parse(file.getPath());
-                Intent vlcIntent = new Intent(Intent.ACTION_VIEW);
-                vlcIntent.setDataAndTypeAndNormalize(uri, "video/*");
-                vlcIntent.putExtra("title", currentanime);
-                PackageManager packageManager = context.getPackageManager();
-                List<ResolveInfo> activities = packageManager.queryIntentActivities(vlcIntent,
-                        PackageManager.MATCH_DEFAULT_ONLY);
 
-                String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(".mp4");
+                Uri uri = Uri.parse(file.getPath());
+
 
                 Intent intent = new Intent();
                 intent.setAction(android.content.Intent.ACTION_VIEW);
                 intent.setDataAndType(Uri.parse(file.getPath()), "video/*");
                 startActivityForResult(intent, 10);
 
-                if (activities.size() > 0) {
-                    //startActivityForResult(vlcIntent, vlcRequestCode);
-                } else {
 
-
-                    Toast.makeText(getContext(), "An Error Occurred! missing video player", Toast.LENGTH_SHORT).show();
-
-
-                    System.out.println("error");
-
-
-                }
 
 
             }

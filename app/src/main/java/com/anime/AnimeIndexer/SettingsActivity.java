@@ -20,10 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
-    GlobalVariable gb;
-    Context context=this;
 
-    static List sresult = new ArrayList();
+    static final List sresult = new ArrayList();
     //final String server = "http://serverparan.ddns.net:";
 
     @Override
@@ -54,7 +52,6 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             ListPreference sources = findPreference("sources");
             System.out.println();
-            SettingsActivity sa=(SettingsActivity)requireActivity();
             Thread i= new Info(server,port,sources);
             i.start();
             try {
@@ -69,9 +66,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         private class Info extends Thread {
 
-            String server;
-            String port;
-            ListPreference sf;
+            final String server;
+            final String port;
+            final ListPreference sf;
             public Info(String server, String port,ListPreference sf){
                 this.server=server;
                 this.port=port;
@@ -142,6 +139,11 @@ public class SettingsActivity extends AppCompatActivity {
 
 
     }
+
+
+
+
+
 
 
 }

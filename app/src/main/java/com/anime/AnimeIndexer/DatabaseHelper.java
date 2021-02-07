@@ -94,7 +94,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Thread.sleep(10);
             } while (movecursor(cursor, 1));
         }
-
+        database.close();
 
         // return contact list
         return wordList;

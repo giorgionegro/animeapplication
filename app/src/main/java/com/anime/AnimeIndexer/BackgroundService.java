@@ -32,6 +32,6 @@ public class BackgroundService extends Service {
         return mBinder;
     }
 
-    public class LocalBinder extends Binder {
+    public static class LocalBinder extends Binder {
     }
 }

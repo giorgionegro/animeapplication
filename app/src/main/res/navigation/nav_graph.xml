@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
             app:destination="@id/SecondFragment" />
+        <action
+            android:id="@+id/action_FirstFragment_to_favoriteFragment"
+            app:destination="@id/favoriteFragment" />
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
@@ -23,13 +26,20 @@
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
+        <action
+            android:id="@+id/action_SecondFragment_to_favoriteFragment"
+            app:destination="@id/favoriteFragment" />
     </fragment>
     <fragment
         android:id="@+id/favoriteFragment"
         android:name="com.anime.AnimeIndexer.FavoriteFragment"
         android:label="fragment_favorite"
-        tools:layout="@layout/fragment_favorite" />
-    <action
-        android:id="@+id/action_global_favoriteFragment"
-        app:destination="@id/favoriteFragment" />
+        tools:layout="@layout/fragment_favorite" /><action android:id="@+id/action_global_favoriteFragment" app:destination="@id/favoriteFragment"/><action android:id="@+id/action_global_FirstFragment" app:destination="@id/FirstFragment"/>
+    <action android:id="@+id/action_global_SecondFragment" app:destination="@id/SecondFragment" />
+    <fragment
+        android:id="@+id/downloadedFragment"
+        android:name="com.anime.AnimeIndexer.DownloadedSeriesFragment"
+        android:label="fragment_downloaded"
+        tools:layout="@layout/fragment_downloaded" />
+    <action android:id="@+id/action_global_downloadedFragment" app:destination="@id/downloadedFragment" />
 </navigation>
