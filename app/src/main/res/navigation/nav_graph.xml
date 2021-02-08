@@ -40,6 +40,21 @@
         android:id="@+id/downloadedFragment"
         android:name="com.anime.AnimeIndexer.DownloadedSeriesFragment"
         android:label="fragment_downloaded"
-        tools:layout="@layout/fragment_downloaded" />
+        tools:layout="@layout/fragment_downloaded" >
+        <action
+            android:id="@+id/action_downloadedFragment_to_downloadedepisodeFragment"
+            app:destination="@id/downloadedepisodeFragment">
+            <argument
+                android:name="Filearg"
+                android:defaultValue="null" />
+ </action>
+
+
+    </fragment>
     <action android:id="@+id/action_global_downloadedFragment" app:destination="@id/downloadedFragment" />
+    <fragment
+        android:id="@+id/downloadedepisodeFragment"
+        android:name="com.anime.AnimeIndexer.DownloadedepisodeFragment"
+        android:label="fragment_downloadedepisode"
+        tools:layout="@layout/fragment_downloadedepisode" />
 </navigation>

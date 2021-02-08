@@ -18,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.google.android.material.button.MaterialButton;
 
@@ -79,7 +80,8 @@ public class DownloadedSeriesFragment extends Fragment {
         ll = view.findViewById(R.id.downladedseries);
         File file = new File(requireContext().getFilesDir() + File.pathSeparator + "seriedownloaded.txt");
         dbh = new DatabaseHelper(mContext);
-        new Thread() {
+
+       Thread t = new Thread() {
             @Override
             public void run() {
 
@@ -93,7 +95,8 @@ public class DownloadedSeriesFragment extends Fragment {
             }
 
 
-        }.start();
+        };
+       t.start();
         System.out.println(requireContext().getFilesDir());
         if (!file.exists()) {
             try {
@@ -186,6 +189,7 @@ public class DownloadedSeriesFragment extends Fragment {
             List<File> list_of_series = Arrays.asList(Objects.requireNonNull(directory.listFiles()));
             for(File f: list_of_series){
                 button myButton = new button(requireContext(),urlbyname(serieslist,f.getName()));
+                myButton.setOnClickListener(new buttonlistener(f));
                 myButton.setText(f.getName());
                 ll.addView(myButton);
 
@@ -221,7 +225,7 @@ public class DownloadedSeriesFragment extends Fragment {
 
     private String urlbyname(List<downloadedserieselement> list, String name) {
         for (downloadedserieselement element : list) {
-            if (name.equals(element.getName().replaceAll("[^a-zA-Z0-9]", ""))) return element.getImgUrl();
+            if (name.replaceAll("[^a-zA-Z0-9]", "").equals(element.getName().replaceAll("[^a-zA-Z0-9]", ""))) return element.getImgUrl();
         }
         return null;
 
@@ -318,6 +322,28 @@ public class DownloadedSeriesFragment extends Fragment {
                 }
 
             }
+
+
+        }
+    }
+
+
+
+
+    private class buttonlistener implements View.OnClickListener {
+        public buttonlistener(File directory) {
+            this.directory = directory;
+        }
+
+        private File directory;
+
+
+        @Override
+        public void onClick(View v) {
+            Bundle var = new Bundle();
+            var.putString("Filearg",directory.getAbsolutePath());
+
+            Navigation.findNavController(v).navigate(R.id.action_downloadedFragment_to_downloadedepisodeFragment,var);
 
 
         }

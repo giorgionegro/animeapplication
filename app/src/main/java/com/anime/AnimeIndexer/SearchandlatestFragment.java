@@ -23,7 +23,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -81,7 +80,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     public List<String> episodelist;
     String currentanime;
     String json;
-    // --Commented out by Inspection (03/02/2021 18:04):View view;
     LinearLayout ll;
     FileInputStream fi;
     ObjectInputStream oi;
@@ -98,7 +96,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
         if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
             ActivityCompat.requestPermissions(
                     activity,
                     PERMISSIONS_STORAGE,
@@ -318,8 +315,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
         bu.setTextColor(Color.BLUE);
         currentanime = currentanime.replaceAll("", "");
-        if(!isinlistbyname(serieslist,currentanime)){
-            serieslist.add(new downloadedserieselement(currentanime,bu.imgurl));
+        if (!isinlistbyname(serieslist, currentanime)) {
+            serieslist.add(new downloadedserieselement(currentanime, bu.imgurl));
             new savefileseries().start();
         }
         if (!episodelist.contains(view.getTag())) {
@@ -581,6 +578,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
 
     }
+
     private class savefileseries extends Thread {
 
         public void run() {
@@ -615,8 +613,6 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     }
 
 
-
-
     public class buttonlisener implements View.OnClickListener {
 
         @Override
@@ -624,7 +620,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             button bu = (button) view;
             currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 1];
             currentanime = currentanime.replaceAll("", "");
-            if(!isinlistbyname(serieslist,currentanime)){
+            if (!isinlistbyname(serieslist, currentanime)) {
 
                 serieslist.add(new downloadedserieselement(currentanime, bu.imgurl));
                 new savefileseries().start();
@@ -891,7 +887,11 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         public boolean onLongClick(View v) {
             button b = (button) v;
             if (!removeduplicate((String) b.getTag())) {
-                prefs.add(new Preferiti((String) b.getTag(), source, b.imgurl, b.getText().toString()));
+                Preferiti p = new Preferiti((String) b.getTag(), source, b.imgurl, b.getText().toString());
+
+
+                prefs.add(p);
+                new add_number_of_episode(p).start();
                 Bitmap icon = BitmapFactory.decodeResource(requireContext().getResources(),
                         R.drawable.star);
 
@@ -904,6 +904,79 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             return true;
         }
     }
+
+
+    class add_number_of_episode extends Thread {
+        private final Preferiti p;
+
+        public add_number_of_episode(Preferiti p) {
+            this.p = p;
+        }
+
+        public void run() {
+            try {
+                requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            String url = p.getUrl();
+            final RequestQueue queue = Volley.newRequestQueue(requireContext());
+            url = url.replace('"', ' ');
+            final int[] result = new int[1];
+            try {
+
+
+                String url2 = server + port + p.getSource() + "//nepi?url=" + url;
+                url2 = url2.replaceAll("\\s+", "");
+                final List<String> listforfab = new ArrayList<>();
+// Request a string response from the provided URL.
+                System.out.println(url2);
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                System.out.println("sadsad");
+                                System.out.println(json);
+                                try {
+
+
+                                    p.setNumperepisode(Integer.parseInt(response));
+
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                System.out.println("asd");
+                                System.out.println();
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(requireContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
+                        System.out.println(error.getMessage());
+                    }
+                });
+
+                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                        10000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+
+// Add the request to the RequestQueue.
+                queue.add(stringRequest);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+
+    }
+
+
 }
 
 

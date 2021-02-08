@@ -24,7 +24,7 @@
         <activity
             android:name="com.anime.AnimeIndexer.SettingsActivity"
             android:label="@string/title_activity_settings" />
-
+        <receiver android:name=".Alarm"/>
         <service
             android:name="com.anime.AnimeIndexer.BackgroundService"
             android:enabled="true" />

@@ -88,27 +88,19 @@ public class FavoriteFragment extends Fragment {
         File file = new File( filedir+ File.pathSeparator + "prefs");
         if (!file.exists()) {
             try {
-
                 file.createNewFile();
-
                 System.out.println("file created");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-
             FileInputStream fi = new FileInputStream(file);
             ObjectInputStream oi = new ObjectInputStream(fi);
-
-
             prefs = (List<Preferiti>) oi.readObject();
-
             System.out.println(prefs.toString());
             oi.close();
             fi.close();
-
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             System.out.println("File not found");
@@ -121,18 +113,10 @@ public class FavoriteFragment extends Fragment {
             e.printStackTrace();
             prefs = new ArrayList<>();
         }
-        //noinspection ConstantConditions
         if (prefs == null) {
             prefs = new ArrayList<>();
-
-
         }
         return prefs;
-
-
-
-
-
     }
     public static void writefile(final List<Preferiti> prefs, final String filedir){
         class savefilep extends Thread {

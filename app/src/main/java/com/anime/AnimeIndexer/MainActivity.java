@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Alarm alarm = new Alarm();
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -142,6 +143,8 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentManager fm = getSupportFragmentManager();
         context = fm.getFragments().get(0).getContext();
+        alarm.setAlarm(context);
+
         new Info().start();
         File file = new File(this.getApplicationContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");//file episodi gia' scaricati
         if (!file.exists()) {

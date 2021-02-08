@@ -4,19 +4,17 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -24,6 +22,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -41,17 +40,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import static androidx.core.os.BundleKt.bundleOf;
 
 public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
@@ -77,6 +75,8 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
     int chunk;
     int chunckrequested;
     private String source;
+    private Context context;
+    public String fileDir;
 
 
     public DetailsFragment() {
@@ -88,6 +88,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         //noinspection ConstantConditions
         if (context == null)
             context = context.getApplicationContext();
+        fileDir = context.getFilesDir().getAbsolutePath();
     }
     @Override
     public View onCreateView(
@@ -96,6 +97,9 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
     ) {
         return inflater.inflate(R.layout.fragment_second, container, false);
     }
+
+
+
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
 
@@ -234,7 +238,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
                 String url2 = server + port + source + "//dettagli?url=" + url + "&chunk=" + chunk;
                 url2 = url2.replaceAll("\\s+", "");
-                final List listforfab = new ArrayList();
+                final List<String> listforfab = new ArrayList<>();
 // Request a string response from the provided URL.
                 System.out.println(url2);
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
@@ -246,7 +250,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                                 System.out.println(json);
                                 try {
                                     List<String> items = Arrays.asList(json.split("\\s*], \\s*"));
-                                    ArrayList<List> item2 = new ArrayList<>();
+                                    ArrayList<List<String>> item2 = new ArrayList<List<String>>();
 
                                     for (String s : items) {
                                         item2.add(Arrays.asList(s.split("\\s*, \\s*")));
@@ -278,10 +282,10 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                                     List<Button> listabottoni = new ArrayList<>();
                                     for (int i = 0; i < items.size(); i++) {
                                         Button myButton = new Button(getContext());
-                                        myButton.setTag(((String) item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        listforfab.add(((String) item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        myButton.setText(((String) item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        if (episodelist.contains(((String) item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
+                                        myButton.setTag((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        listforfab.add((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        myButton.setText((item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                        if (episodelist.contains((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
                                             myButton.setTextColor(Color.BLUE);
 
                                         myButton.setOnClickListener(new buttonlisener2());
@@ -349,7 +353,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
 
         public void run() {
-            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
+            File file = new File(fileDir + File.pathSeparator + "serievisteoscaricate.txt");
             if (!file.exists()) {
                 try {
 
@@ -365,7 +369,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 ObjectOutputStream o = new ObjectOutputStream(f);
                 System.out.println("File opened");
                 // Write objects to file
-                List su = new ArrayList(episodelist);
+                List<String> su = new ArrayList<>(episodelist);
 
                 o.writeObject(su);
 
@@ -473,5 +477,21 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
 
     }
+
+    private class fileoject{
+        private final File directory;
+
+
+        public fileoject(File directory) {
+            this.directory = directory;
+        }
+    }
+
+
+
+
+
+
+
 
 }
