@@ -12,5 +12,11 @@
             android:key="Streaming"
             android:summary="if checked always stream instead of downloading"
             android:title="Streaming" />
+        <EditTextPreference
+            android:defaultValue="192.168.0.211:16834/"
+            android:key="server"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="server url" />
     </PreferenceCategory>
 </PreferenceScreen>

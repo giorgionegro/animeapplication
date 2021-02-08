@@ -54,9 +54,8 @@ public class MainActivity extends AppCompatActivity {
     private String currentnanimeforfragment;
     private String urlforfragment;
     private List listforfab;
-    final String port = "16834";
     //final String server = "http://serverparan.ddns.net:";
-    final String server = "http://192.168.0.211:";
+     String server = "http://192.168.0.211:16834/";
     public void setterfor2fragment(String url,String source2) {
         this.urlforfragment = url;this.source2 = source2;
     }
@@ -85,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
                 PreferenceManager.getDefaultSharedPreferences(this);
 
       source = sharedPreferences.getString("list_preference_1", "/aw/");
+        server=sharedPreferences.getString("server","192.168.0.211:16834/");
+
         setTheme(R.style.Theme_MaterialComponents_DayNight); //imposta tema scuro
 
         System.err.println("setting");
@@ -290,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
 
                 RequestQueue queue = Volley.newRequestQueue(context);
-                String url = server + port + "/info";
+                String url = server  + "/info";
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,

@@ -1,12 +1,14 @@
 package com.anime.AnimeIndexer;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -18,6 +20,7 @@ import com.android.volley.toolbox.Volley;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -44,15 +47,19 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
         GlobalVariable gb;
-        final String port = "16834/";
-        final String server = "http://192.168.0.211:";
+         String server = "http://192.168.0.211:16834";
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+            SettingsActivity m = (SettingsActivity) getActivity();
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(m);
+            server=sharedPreferences.getString("server","192.168.0.211:16834/");
+
             ListPreference sources = findPreference("sources");
             System.out.println();
-            Thread i= new Info(server,port,sources);
+            Thread i= new Info(server,sources);
             i.start();
             try {
                 i.join();
@@ -67,11 +74,9 @@ public class SettingsActivity extends AppCompatActivity {
         private class Info extends Thread {
 
             final String server;
-            final String port;
             final ListPreference sf;
-            public Info(String server, String port,ListPreference sf){
+            public Info(String server,ListPreference sf){
                 this.server=server;
-                this.port=port;
                 this.sf=sf;
             }
 
@@ -82,7 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
                     sresult.clear();
                     requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
                     RequestQueue queue = Volley.newRequestQueue(requireContext());
-                    String url = server + port + "/info";
+                    String url = server  + "/info";
                     StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {

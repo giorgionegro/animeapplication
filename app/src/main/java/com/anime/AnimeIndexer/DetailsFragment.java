@@ -54,9 +54,8 @@ import static androidx.core.os.BundleKt.bundleOf;
 public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
 
-    final String port = "16834/";
     //  final String server = "http://serverparan.ddns.net:";
-    final String server = "http://192.168.0.211:";
+     String server = "http://192.168.0.211:16834/";
     final List<List<String>> sresult = new ArrayList<>();
     public List<String> episodelist;
     String currentanime;
@@ -117,6 +116,8 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         url = (String) l.get(0);
         currentanime = (String) l.get(1);
         source =(String)l.get(2);
+        server=sharedPreferences.getString("server","192.168.0.211:16834/");
+
         ll = view.findViewById(R.id.elencoepisodi);
         ll.removeAllViews();
         scrollView = (ScrollView) ll.getParent();
@@ -236,7 +237,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
             try {
 
 
-                String url2 = server + port + source + "//dettagli?url=" + url + "&chunk=" + chunk;
+                String url2 = server  + source + "//dettagli?url=" + url + "&chunk=" + chunk;
                 url2 = url2.replaceAll("\\s+", "");
                 final List<String> listforfab = new ArrayList<>();
 // Request a string response from the provided URL.

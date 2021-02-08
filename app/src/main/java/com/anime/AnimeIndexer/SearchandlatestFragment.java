@@ -70,9 +70,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    final String port = "16834/";
     //final String server = "http://serverparan.ddns.net:";
-    final String server = "http://192.168.0.211:";
     final List<List<String>> sresult = new ArrayList<>();
     final int Width = 250;
     private final buttonlisener buttonl = new buttonlisener();
@@ -89,6 +87,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
     List<Preferiti> prefs;
     private String source;
     private List<downloadedserieselement> serieslist;
+    private String server;
 
 
     public static void verifyStoragePermissions(Activity activity) {
@@ -169,6 +168,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
         prefs = FavoriteFragment.readfile(requireContext().getFilesDir().getAbsolutePath());
+        server=sharedPreferences.getString("server","192.168.0.211:16834/");
         source = sharedPreferences.getString("sources", "/aw/");
         streaming = sharedPreferences.getBoolean("Streaming", true);
         super.onViewCreated(view, savedInstanceState);
@@ -436,7 +436,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                 requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
 
                 RequestQueue queue = Volley.newRequestQueue(requireContext());
-                String url = server + port + source + "/q?q=" + Searchterm;
+                String url = server  + source + "/q?q=" + Searchterm;
 
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -793,7 +793,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                     Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                 }
                 RequestQueue queue = Volley.newRequestQueue(requireContext());
-                String url = server + port + source + "/latest";
+                String url = server  + source + "/latest";
                 System.out.println(url);
 // Request a string response from the provided URL.
                 StringRequest stringRequest = new StringRequest(url, new Response.Listener<String>() {
@@ -926,7 +926,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             try {
 
 
-                String url2 = server + port + p.getSource() + "//nepi?url=" + url;
+                String url2 = server + p.getSource() + "//nepi?url=" + url;
                 url2 = url2.replaceAll("\\s+", "");
                 final List<String> listforfab = new ArrayList<>();
 // Request a string response from the provided URL.

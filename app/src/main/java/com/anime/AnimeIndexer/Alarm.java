@@ -6,11 +6,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.icu.util.Calendar;
 import android.os.PowerManager;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -29,12 +31,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Alarm extends BroadcastReceiver
 {
-    final String port = "16834/";
     //final String server = "http://serverparan.ddns.net:";
-    final String server = "http://192.168.0.211:";
+     String server = "http://192.168.0.211:16834";
     List<Preferiti> prefs;
     private int MID=0;
 
@@ -45,6 +47,11 @@ public class Alarm extends BroadcastReceiver
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "test:");
         wl.acquire();
         Toast.makeText(context, "Alarm !!!!!!!!!!", Toast.LENGTH_LONG).show(); // For example
+
+
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        server=sharedPreferences.getString("server","192.168.0.211:16834/");
 
         prefs = readfile(context.getFilesDir().getAbsolutePath());
         for(Preferiti p : prefs){
@@ -180,7 +187,7 @@ public class Alarm extends BroadcastReceiver
             try {
 
 
-                String url2 = server + port + p.getSource() + "//nepi?url=" + url;
+                String url2 = server + p.getSource() + "//nepi?url=" + url;
                 url2 = url2.replaceAll("\\s+", "");
                 final List<String> listforfab = new ArrayList<>();
 // Request a string response from the provided URL.
@@ -192,7 +199,7 @@ public class Alarm extends BroadcastReceiver
                                 System.out.println("sadsad");
                                 try {
 
-                                    if (Integer.parseInt(response)>p.getNumperepisode()){
+                                    if (!(Integer.parseInt(response)>p.getNumperepisode())){
                                         NotificationManager notificationManager = (NotificationManager) context
                                                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
