@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,6 +78,7 @@ public class DownloadedepisodeFragment extends Fragment {
         ll.removeAllViews();
         if (directory.exists() && directory.isDirectory()) {
             List<File> list_of_series = Arrays.asList(Objects.requireNonNull(directory.listFiles()));
+            Collections.sort(list_of_series);
             for(File f: list_of_series){
                 button myButton = new button(requireContext(),f);
                 myButton.setText(f.getName());

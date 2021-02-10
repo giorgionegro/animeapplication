@@ -13,9 +13,6 @@
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
             app:destination="@id/SecondFragment" />
-        <action
-            android:id="@+id/action_FirstFragment_to_favoriteFragment"
-            app:destination="@id/favoriteFragment" />
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
@@ -26,9 +23,6 @@
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
-        <action
-            android:id="@+id/action_SecondFragment_to_favoriteFragment"
-            app:destination="@id/favoriteFragment" />
     </fragment>
     <fragment
         android:id="@+id/favoriteFragment"

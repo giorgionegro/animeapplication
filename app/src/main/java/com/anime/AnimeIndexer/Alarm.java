@@ -31,7 +31,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Alarm extends BroadcastReceiver
 {
@@ -55,17 +54,16 @@ public class Alarm extends BroadcastReceiver
 
         prefs = readfile(context.getFilesDir().getAbsolutePath());
         for(Preferiti p : prefs){
-            new add_number_of_episode(p,context).start();
-
-
-
-
-
-
+           add_number_of_episode ad= new add_number_of_episode(prefs,context,prefs.lastIndexOf(p));
+           ad.start();
+            try {
+                ad.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
 
         }
-        writefile(prefs,context.getFilesDir().getAbsolutePath());
 
 
         wl.release();
@@ -150,7 +148,7 @@ public class Alarm extends BroadcastReceiver
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     System.out.println("File opened");
                     // Write objects to file
-                    List su = new ArrayList(prefs);
+                    List<Preferiti> su = new ArrayList<>(prefs);
 
                     o.writeObject(su);
 
@@ -168,11 +166,15 @@ public class Alarm extends BroadcastReceiver
 
 
     class add_number_of_episode extends Thread {
-        private final Preferiti p;
+        private final List<Preferiti> p;
         private final Context context;
-        public add_number_of_episode(Preferiti p, Context context) {
-            this.p = p;
+        private final int i;
+
+
+        public add_number_of_episode(List<Preferiti> p, Context context, int i) {
+            this.p = prefs;
             this.context = context;
+            this.i = i;
         }
 
         public void run() {
@@ -180,14 +182,14 @@ public class Alarm extends BroadcastReceiver
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            String url = p.getUrl();
+            String url = p.get(i).getUrl();
             final RequestQueue queue = Volley.newRequestQueue(context);
             url = url.replace('"', ' ');
             final int[] result = new int[1];
             try {
 
 
-                String url2 = server + p.getSource() + "//nepi?url=" + url;
+                String url2 = server + p.get(i).getSource() + "//nepi?url=" + url;
                 url2 = url2.replaceAll("\\s+", "");
                 final List<String> listforfab = new ArrayList<>();
 // Request a string response from the provided URL.
@@ -199,19 +201,28 @@ public class Alarm extends BroadcastReceiver
                                 System.out.println("sadsad");
                                 try {
 
-                                    if (!(Integer.parseInt(response)>p.getNumperepisode())){
+                                    if ((Integer.parseInt(response)>p.get(i).getNumperepisode())){
+                                        p.get(i).setNumperepisode(Integer.parseInt(response));
                                         NotificationManager notificationManager = (NotificationManager) context
                                                 .getSystemService(Context.NOTIFICATION_SERVICE);
 
-                                        p.setNumperepisode(Integer.parseInt(response));
-                                        NotificationCompat.Builder mNotifyBuilder = new NotificationCompat.Builder(
-                                                context).setSmallIcon(R.mipmap.ic_launcher_round)
-                                                .setContentTitle("Alarm Fired")
-                                                .setContentText("new episode"+p.getTitle())
-                                                .setVibrate(new long[]{1000, 1000, 1000, 1000, 1000});
-                                        notificationManager.notify(MID, mNotifyBuilder.build());
+
+                                        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "135772")
+                                                .setSmallIcon(R.mipmap.ic_launcher)
+                                                .setChannelId("135772")
+
+                                                .setContentTitle("Maybe there are some new episode of"+ p.get(i).getTitle())
+                                                .setContentText("Maybe there are some new episode of"+ p.get(i).getTitle())
+                                                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+                                        notificationManager.notify(MID, builder.build());
+
+
+
+
                                         MID++;
 
+
+                                            writefile(prefs,context.getFilesDir().getAbsolutePath());
 
 
                                     }
@@ -240,6 +251,7 @@ public class Alarm extends BroadcastReceiver
 // Add the request to the RequestQueue.
                 queue.add(stringRequest);
 
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -249,4 +261,7 @@ public class Alarm extends BroadcastReceiver
 
 
     }
+
+
+
 }

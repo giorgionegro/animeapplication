@@ -2,10 +2,13 @@ package com.anime.AnimeIndexer;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -39,6 +42,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     final List sresult = new ArrayList();
     private String source;
+    private int MID;
 
     public GlobalVariable getGb() {
         return gb;
@@ -49,12 +53,10 @@ public class MainActivity extends AppCompatActivity {
     ObjectInputStream oi;
     GlobalVariable gb;
     String source2="/aw/";
-    // --Commented out by Inspection (03/02/2021 18:04):bitmaplist listabitm;
-    // --Commented out by Inspection (03/02/2021 18:03):DatabaseHelper dbh;
+
     private String currentnanimeforfragment;
     private String urlforfragment;
     private List listforfab;
-    //final String server = "http://serverparan.ddns.net:";
      String server = "http://192.168.0.211:16834/";
     public void setterfor2fragment(String url,String source2) {
         this.urlforfragment = url;this.source2 = source2;
@@ -64,10 +66,10 @@ public class MainActivity extends AppCompatActivity {
         listforfab = l;
     }
 
-    public List getter() {
+    public List<String> getter() {
 
 
-        List result = new ArrayList();
+        List<String> result = new ArrayList<String>();
         result.add(urlforfragment);
 
         result.add(currentnanimeforfragment);
@@ -75,10 +77,25 @@ public class MainActivity extends AppCompatActivity {
 
         return result;
     }
-
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("135772", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
     @SuppressWarnings("ConstantConditions")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         Alarm alarm = new Alarm();
         SharedPreferences sharedPreferences =
                 PreferenceManager.getDefaultSharedPreferences(this);
@@ -190,6 +207,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         }
+        createNotificationChannel();
+
+
 
     }
 

@@ -5,16 +5,16 @@ import java.util.List;
 
 public class GlobalVariable {
     public final CharSequence[] Entryvalues;
-    public final List references;
+    public final List<String> references;
     public final CharSequence[] Entry;
-    public GlobalVariable(List<List> sresult) {
-        List Entry = new ArrayList<String>();
-        List Values = new ArrayList<String>();
-        List references = new ArrayList();
+    public GlobalVariable(List<List<String>> sresult) {
+        List<String> Entry = new ArrayList<>();
+        List<String> Values = new ArrayList<>();
+        List<String> references = new ArrayList<>();
         Entry.clear();
         Values.clear();
         references.clear();
-        for (List l : sresult) {
+        for (List<String> l : sresult) {
             Entry.add(l.get(0));
             Values.add(l.get(1));
             try {
@@ -25,8 +25,8 @@ public class GlobalVariable {
         }
 
 
-        this.Entry = (CharSequence[]) Entry.toArray(new CharSequence[0]);
-        this.Entryvalues = (CharSequence[]) Values.toArray(new CharSequence[0]);
+        this.Entry = Entry.toArray(new CharSequence[0]);
+        this.Entryvalues = Values.toArray(new CharSequence[0]);
         this.references = references;
     }
 
@@ -36,7 +36,7 @@ public class GlobalVariable {
             String s = i.toString();
             if (s.equals(entry)) {
                 try {
-                    return (String) references.get(j);
+                    return references.get(j);
                 } catch (Exception e) {
                     return null;
                 }

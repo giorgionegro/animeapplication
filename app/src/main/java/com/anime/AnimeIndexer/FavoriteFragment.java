@@ -138,7 +138,7 @@ public class FavoriteFragment extends Fragment {
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     System.out.println("File opened");
                     // Write objects to file
-                    List su = new ArrayList(prefs);
+                    List<Preferiti> su = new ArrayList<>(prefs);
 
                     o.writeObject(su);
 

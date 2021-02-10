@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,8 +47,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import static androidx.core.os.BundleKt.bundleOf;
 
 public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
@@ -111,11 +108,15 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
 
                 streaming = sharedPreferences.getBoolean("Streaming",true);
-        MainActivity ma = (MainActivity) getActivity();
-        List l = Objects.requireNonNull(ma).getter();
-        url = (String) l.get(0);
-        currentanime = (String) l.get(1);
-        source =(String)l.get(2);
+        MainActivity ma = (MainActivity) requireActivity();
+        if(ma == null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
+
+        List<String> l = ma.getter();
+        url = l.get(0);
+        currentanime = l.get(1);
+        source = l.get(2);
+        if(url == null|currentanime==null|source==null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
+
         server=sharedPreferences.getString("server","192.168.0.211:16834/");
 
         ll = view.findViewById(R.id.elencoepisodi);
@@ -125,15 +126,19 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
         System.out.println(requireContext().getFilesDir());
 
+
+
+
+
+
             try {
 
-                file.createNewFile();
-
-                System.out.println("file created");
+                if (file.createNewFile()){
+                    System.out.println("file created");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         try {
 
             fi = new FileInputStream(file);
@@ -222,10 +227,10 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         @Override
         protected Object doInBackground(Object... arg0) {
             MainActivity ma = (MainActivity) getActivity();
-            List l = Objects.requireNonNull(ma).getter();
-            url = (String) l.get(0);
-            currentanime = (String) l.get(1);
-            source =(String)l.get(2);
+            List<String> l = Objects.requireNonNull(ma).getter();
+            url = l.get(0);
+            currentanime = l.get(1);
+            source = l.get(2);
             try {
                 requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
             } catch (Exception e) {
