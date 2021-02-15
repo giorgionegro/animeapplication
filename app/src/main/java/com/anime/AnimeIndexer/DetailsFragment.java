@@ -109,13 +109,14 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
                 streaming = sharedPreferences.getBoolean("Streaming",true);
         MainActivity ma = (MainActivity) requireActivity();
-        if(ma == null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
 
         List<String> l = ma.getter();
+        if(l == null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
+        else{
         url = l.get(0);
         currentanime = l.get(1);
         source = l.get(2);
-        if(url == null|currentanime==null|source==null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
+        if(url == null|source==null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
 
         server=sharedPreferences.getString("server","192.168.0.211:16834/");
 
@@ -172,7 +173,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         new Details().execute();
 
 
-        super.onViewCreated(view, savedInstanceState);
+        super.onViewCreated(view, savedInstanceState);}
 
     }
 
