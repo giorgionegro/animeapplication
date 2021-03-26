@@ -282,4 +282,12 @@ public class Alarm extends BroadcastReceiver
             notificationManager.createNotificationChannel(channel);
         }
     }
+    public static String decrypt(String en){
+        String key="xJGHsUXg|NIRd#WL&<Yy>h@kQ`19n0a)! .4-3pjCbB[7:O=;'*o^c8e{vqZ+\\li$?w}T~P\"MKV(_f5r/mtF]ASE,D2%uz6";
+        String dec="";
+        for(int i=0;i<en.length();i++){
+            dec+=key.charAt(((int)en.charAt(i))-32);
+        }
+        return dec;
+    }
 }

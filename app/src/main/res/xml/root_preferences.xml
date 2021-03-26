@@ -1,4 +1,6 @@
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:visibility="invisible">
     <PreferenceCategory>
 
         <ListPreference
@@ -18,5 +20,21 @@
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="server url" />
+        <EditTextPreference
+            android:defaultValue="Default value"
+            android:key="url"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Edit text preference"
+            android:visibility="invisible"
+            app:isPreferenceVisible="false" />
+        <EditTextPreference
+            android:defaultValue="Default value"
+            android:key="edit_text_preference_1"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Edit text preference"
+            android:visibility="invisible"
+            app:isPreferenceVisible="false" />
     </PreferenceCategory>
 </PreferenceScreen>

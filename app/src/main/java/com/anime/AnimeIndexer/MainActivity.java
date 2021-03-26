@@ -11,6 +11,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -303,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
+                                response = decrypt(response);
                                 System.out.println("sadsad");
                                 System.out.println(response);
                                 try {
@@ -330,6 +332,8 @@ public class MainActivity extends AppCompatActivity {
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+
+
                         Toast.makeText(context, "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
 
                         System.out.println(error.getMessage());
@@ -352,6 +356,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
+    public static String decrypt(String en){
+        String key="xJGHsUXg|NIRd#WL&<Yy>h@kQ`19n0a)! .4-3pjCbB[7:O=;'*o^c8e{vqZ+\\li$?w}T~P\"MKV(_f5r/mtF]ASE,D2%uz6";
+        String dec="";
+        for(int i=0;i<en.length();i++){
+            dec+=key.charAt(((int)en.charAt(i))-32);
+        }
+        return dec;
+    }
 
 }

@@ -190,7 +190,7 @@ public class DownloadedSeriesFragment extends Fragment {
             for(File f: list_of_series){
                 button myButton = new button(requireContext(),urlbyname(serieslist,f.getName()));
                 myButton.setOnClickListener(new buttonlistener(f));
-                myButton.setText(f.getName());
+                myButton.setText(unescape(f.getName()));
                 ll.addView(myButton);
 
 
@@ -200,6 +200,7 @@ public class DownloadedSeriesFragment extends Fragment {
 
         } else {
 
+            Looper.prepare();
 
             Toast.makeText(getContext(), "nessuna cartella", Toast.LENGTH_SHORT).show();
         }
@@ -272,6 +273,8 @@ public class DownloadedSeriesFragment extends Fragment {
             }
 
             public void run() {
+                Looper.prepare();
+
                 final Bitmap x;
 
                 HttpURLConnection connection = null;
@@ -279,7 +282,8 @@ public class DownloadedSeriesFragment extends Fragment {
                     connection = (HttpURLConnection) new URL(imgurl).openConnection();
 
                 } catch (IOException e) {
-                    Looper.prepare();
+
+
                     Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                     System.err.println(e.getMessage());
@@ -347,6 +351,28 @@ public class DownloadedSeriesFragment extends Fragment {
 
 
         }
+    }
+    private String unescape(String s) {
+        int i=0, len=s.length();
+        char c;
+        StringBuffer sb = new StringBuffer(len);
+        while (i < len) {
+            c = s.charAt(i++);
+            if (c == '\\') {
+                if (i < len) {
+                    c = s.charAt(i++);
+                    if (c == 'u') {
+                        c = (char) Integer.parseInt(s.substring(i, i+4), 16);
+                        i += 4;
+                    }
+                    if(c== '"'){
+                        c= '\'';
+                    }
+                }
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
 }

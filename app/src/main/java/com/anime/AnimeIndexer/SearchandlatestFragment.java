@@ -58,6 +58,7 @@ import java.io.ObjectOutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -443,7 +444,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-
+                                response = decrypt(response);
+                                response=unescape(response);
                                 json = response;
                                 System.out.println(json);
                                 try {
@@ -460,7 +462,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                                     for (int i = 0; i < sresult.size(); i++) {
                                         button myButton = new button(requireContext(), sresult.get(i).get(2));
                                         myButton.setTag(sresult.get(i).get(0));
-                                        myButton.setText(sresult.get(i).get(1));
+                                        byte[] string = sresult.get(i).get(1).getBytes();
+                                        myButton.setText(new String(string, StandardCharsets.UTF_8));
                                         myButton.setOnClickListener(buttonl);
                                         myButton.setOnLongClickListener(new longclocklistener());
                                         ll.addView(myButton);
@@ -478,6 +481,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+
                         Toast.makeText(getContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
 
                         System.out.println(error.getMessage());
@@ -699,6 +703,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             }
 
             public void run() {
+                Looper.prepare();
+
                 final Bitmap x;
 
                 HttpURLConnection connection = null;
@@ -706,7 +712,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                     connection = (HttpURLConnection) new URL(imgurl).openConnection();
 
                 } catch (IOException e) {
-                    Looper.prepare();
+
                     Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                     System.err.println(e.getMessage());
@@ -738,6 +744,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
                     final Bitmap fbit = Bitmap.createScaledBitmap(
                             x, Width, height, false);
+                    try{
                     requireActivity().runOnUiThread(new Runnable() {
 
                         @Override
@@ -750,7 +757,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                                 drawoverlay(b);
                             }
                         }
-                    });
+                    });}catch (Exception e)
+                    {
+                        System.out.println((e.getMessage()));
+                    }
 
 
                 }
@@ -785,6 +795,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
         @Override
 
         public void run() {
+            Looper.prepare();
+
             try {
                 requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
                 try {
@@ -801,8 +813,10 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                     @Override
                     public void onResponse(String response) {
                         ll.removeAllViews();
+                        response = decrypt(response);
                         //System.out.println("sadsad");
                         sresult.clear();
+                        response=unescape(response);
                         json = response;
                         System.out.println(json);
                         // ObjectMapper mapper = new ObjectMapper();
@@ -829,7 +843,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                             for (int i = 0; i < sresult.size(); i++) {
                                 button myButton = new button(requireContext(), sresult.get(i).get(2));
                                 myButton.setTag(sresult.get(i).get(0));
-                                myButton.setText(sresult.get(i).get(1));
+
+                                myButton.setText( sresult.get(i).get(1));
                                 myButton.setOnClickListener(new buttonlisener2());
                                 ll.addView(myButton);
                             }
@@ -843,6 +858,7 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                             listabottoni.clear();
 
                         } catch (Exception e) {
+
                             Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                             System.out.println(e.toString());
                         }
@@ -854,7 +870,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         System.out.println(Arrays.toString(error.getStackTrace()));
-                        Toast.makeText(getContext(), "Error on reaching server, maybe there are no new episode D:, if not  please retry later", Toast.LENGTH_SHORT).show();
+
+                        Toast.makeText(requireContext(), "Error on reaching server, maybe there are no new episode D:, if not  please retry later", Toast.LENGTH_SHORT).show();
 
                     }
                 });
@@ -873,6 +890,8 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println(e.getMessage());
+                Looper.prepare();
+
                 Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
             }
 
@@ -952,10 +971,9 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+
                         Toast.makeText(requireContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
-                        System.out.println(error.getMessage());
-                    }
-                });
+                        System.out.println(error.getMessage()); }});
 
                 stringRequest.setRetryPolicy(new DefaultRetryPolicy(
                         10000,
@@ -975,7 +993,36 @@ public class SearchandlatestFragment extends Fragment implements SearchView.OnQu
 
 
     }
-
+    public static String decrypt(String en){
+        String key="xJGHsUXg|NIRd#WL&<Yy>h@kQ`19n0a)! .4-3pjCbB[7:O=;'*o^c8e{vqZ+\\li$?w}T~P\"MKV(_f5r/mtF]ASE,D2%uz6";
+        String dec="";
+        for(int i=0;i<en.length();i++){
+            dec+=key.charAt(((int)en.charAt(i))-32);
+        }
+        return dec;
+    }
+    private String unescape(String s) {
+        int i=0, len=s.length();
+        char c;
+        StringBuffer sb = new StringBuffer(len);
+        while (i < len) {
+            c = s.charAt(i++);
+            if (c == '\\') {
+                if (i < len) {
+                    c = s.charAt(i++);
+                    if (c == 'u') {
+                        c = (char) Integer.parseInt(s.substring(i, i+4), 16);
+                        i += 4;
+                    }
+                    if(c== '"'){
+                        c= '\'';
+                    }
+                }
+            }
+            sb.append(c);
+        }
+        return sb.toString();
+    }
 
 }
 

@@ -91,6 +91,7 @@ public class DownloadedepisodeFragment extends Fragment {
 
         } else {
 
+            Looper.prepare();
 
             Toast.makeText(getContext(), "nessuna cartella", Toast.LENGTH_SHORT).show();
         }

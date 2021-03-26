@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,10 +52,11 @@ import java.util.Objects;
 public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScrollChangedListener {
 
 
-    //  final String server = "http://serverparan.ddns.net:";
-     String server = "http://192.168.0.211:16834/";
     final List<List<String>> sresult = new ArrayList<>();
     public List<String> episodelist;
+    public String fileDir;
+    //  final String server = "http://serverparan.ddns.net:";
+    String server = "http://192.168.0.211:16834/";
     String currentanime;
     String json;
     boolean streaming;
@@ -63,8 +65,6 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
     FileInputStream fi;
     ObjectInputStream oi;
     GlobalVariable gb;
-
-
     String url;
     // --Commented out by Inspection (03/02/2021 18:03):DatabaseHelper dbh;
     ScrollView scrollView;
@@ -72,11 +72,11 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
     int chunckrequested;
     private String source;
     private Context context;
-    public String fileDir;
 
 
     public DetailsFragment() {
     }
+
     @SuppressWarnings("ConstantConditions")
     @Override
     public void onAttach(@NonNull Context context) {
@@ -86,6 +86,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
             context = context.getApplicationContext();
         fileDir = context.getFilesDir().getAbsolutePath();
     }
+
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
@@ -93,8 +94,6 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
     ) {
         return inflater.inflate(R.layout.fragment_second, container, false);
     }
-
-
 
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -107,73 +106,79 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
 
-                streaming = sharedPreferences.getBoolean("Streaming",true);
+        streaming = sharedPreferences.getBoolean("Streaming", true);
         MainActivity ma = (MainActivity) requireActivity();
-
         List<String> l = ma.getter();
-        if(l == null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
-        else{
-        url = l.get(0);
-        currentanime = l.get(1);
-        source = l.get(2);
-        if(url == null|source==null){            Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment); }
+        if (l == null | l.get(0) == null) {
+           url= sharedPreferences.getString("url", url);
+            currentanime=sharedPreferences.getString("currentanime", currentanime);
+            source = l.get(2);
+        } else {
+            url = l.get(0);
+            currentanime = l.get(1);
+            source = l.get(2);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("url", url);
+            editor.putString("currentanime", currentanime);
+            editor.apply();
+            }
+            if (url == null | source == null) {
+                Navigation.findNavController(view).navigate(R.id.action_global_FirstFragment);
+            }
 
-        server=sharedPreferences.getString("server","192.168.0.211:16834/");
+            server = sharedPreferences.getString("server", "192.168.0.211:16834/");
 
-        ll = view.findViewById(R.id.elencoepisodi);
-        ll.removeAllViews();
-        scrollView = (ScrollView) ll.getParent();
-        scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
-        File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
-        System.out.println(requireContext().getFilesDir());
-
-
-
-
+            ll = view.findViewById(R.id.elencoepisodi);
+            ll.removeAllViews();
+            scrollView = (ScrollView) ll.getParent();
+            scrollView.getViewTreeObserver().addOnScrollChangedListener(this);
+            File file = new File(requireContext().getFilesDir() + File.pathSeparator + "serievisteoscaricate.txt");
+            System.out.println(requireContext().getFilesDir());
 
 
             try {
 
-                if (file.createNewFile()){
+                if (file.createNewFile()) {
                     System.out.println("file created");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        try {
+            try {
 
-            fi = new FileInputStream(file);
-            oi = new ObjectInputStream(fi);
-
-
-            episodelist = (List<String>) oi.readObject();
-
-            System.out.println(episodelist.toString());
-            oi.close();
-            fi.close();
+                fi = new FileInputStream(file);
+                oi = new ObjectInputStream(fi);
 
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            System.out.println("File not found");
-            episodelist = new ArrayList<>();
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error initializing stream");
-            episodelist = new ArrayList<>();
-        } catch (Exception e) {
-            e.printStackTrace();
-            episodelist = new ArrayList<>();
-        }
-        if (episodelist == null) {
-            episodelist = new ArrayList<>();
+                episodelist = (List<String>) oi.readObject();
+
+                System.out.println(episodelist.toString());
+                oi.close();
+                fi.close();
 
 
-        }
-        new Details().execute();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                System.out.println("File not found");
+                episodelist = new ArrayList<>();
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Error initializing stream");
+                episodelist = new ArrayList<>();
+            } catch (Exception e) {
+                e.printStackTrace();
+                episodelist = new ArrayList<>();
+            }
+            if (episodelist == null) {
+                episodelist = new ArrayList<>();
 
 
-        super.onViewCreated(view, savedInstanceState);}
+            }
+            new Details().start();
+
+
+            super.onViewCreated(view, savedInstanceState);
+
 
     }
 
@@ -182,7 +187,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 PreferenceManager.getDefaultSharedPreferences(requireActivity());
 
         source = sharedPreferences.getString("sources", "/aw/");
-        streaming = sharedPreferences.getBoolean("Streaming",true);
+        streaming = sharedPreferences.getBoolean("Streaming", true);
         Button bu = (Button) view;
         bu.setTextColor(Color.BLUE);
         currentanime = (((String) view.getTag()).split("/"))[((String) view.getTag()).split("/").length - 2];
@@ -207,7 +212,8 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         int bottomDetector = view2.getBottom() - (scrollView.getHeight() + scrollView.getScrollY());
         if (bottomDetector == 0 && chunckrequested == chunk) {
             chunk++;
-            new Details().execute();
+            new Details().start();
+
             Toast.makeText(getContext(), "reaching server for new episode", Toast.LENGTH_SHORT).show();
             System.out.println("bottom");
 
@@ -215,7 +221,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
     }
 
-    public class Details extends AsyncTask {
+    public class Details extends Thread {
 
 
         public Details() {
@@ -226,44 +232,43 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         }
 
         @Override
-        protected Object doInBackground(Object... arg0) {
+        public void run() {
             MainActivity ma = (MainActivity) getActivity();
             List<String> l = Objects.requireNonNull(ma).getter();
-            url = l.get(0);
-            currentanime = l.get(1);
-            source = l.get(2);
+
             try {
                 requestPermissions(new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, 1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            if (url != null) {
+                final RequestQueue queue = Volley.newRequestQueue(requireContext());
+                url = url.replace('"', ' ');
+                try {
 
-            final RequestQueue queue = Volley.newRequestQueue(requireContext());
-            url = url.replace('"', ' ');
-            try {
 
-
-                String url2 = server  + source + "//dettagli?url=" + url + "&chunk=" + chunk;
-                url2 = url2.replaceAll("\\s+", "");
-                final List<String> listforfab = new ArrayList<>();
+                    String url2 = server + source + "//dettagli?url=" + url + "&chunk=" + chunk;
+                    url2 = url2.replaceAll("\\s+", "");
+                    final List<String> listforfab = new ArrayList<>();
 // Request a string response from the provided URL.
-                System.out.println(url2);
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                System.out.println("sadsad");
-                                json = response;
-                                System.out.println(json);
-                                try {
-                                    List<String> items = Arrays.asList(json.split("\\s*], \\s*"));
-                                    ArrayList<List<String>> item2 = new ArrayList<List<String>>();
+                    System.out.println(url2);
+                    StringRequest stringRequest = new StringRequest(Request.Method.GET, url2,
+                            new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    response = decrypt(response);
+                                    System.out.println("sadsad");
+                                    json = response;
+                                    System.out.println(json);
+                                    try {
+                                        List<String> items = Arrays.asList(json.split("\\s*], \\s*"));
+                                        ArrayList<List<String>> item2 = new ArrayList<List<String>>();
 
-                                    for (String s : items) {
-                                        item2.add(Arrays.asList(s.split("\\s*, \\s*")));
+                                        for (String s : items) {
+                                            item2.add(Arrays.asList(s.split("\\s*, \\s*")));
 
 
-                                    }
+                                        }
                              /*       for (int j =0; j<(item2.size());j++){
                                         String i = (String) (item2.get(j)).get(0);
                                        i =  i.replace('"', ' ');
@@ -281,64 +286,66 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                                     }*/
 
 
-                                    new savefile().start();
+                                        new savefile().start();
 
-                                    System.out.println(items);
+                                        System.out.println(items);
 
-                                    System.out.println(items);
-                                    List<Button> listabottoni = new ArrayList<>();
-                                    for (int i = 0; i < items.size(); i++) {
-                                        Button myButton = new Button(getContext());
-                                        myButton.setTag((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        listforfab.add((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        myButton.setText((item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
-                                        if (episodelist.contains((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
-                                            myButton.setTextColor(Color.BLUE);
+                                        System.out.println(items);
+                                        List<Button> listabottoni = new ArrayList<>();
+                                        for (int i = 0; i < items.size(); i++) {
+                                            Button myButton = new Button(getContext());
+                                            myButton.setTag((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                            listforfab.add((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                            myButton.setText((item2.get(i).get(1)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", ""));
+                                            if (episodelist.contains((item2.get(i).get(0)).replace('"', ' ').replace('[', ' ').replace(']', ' ').replaceAll("\\s+", "")))
+                                                myButton.setTextColor(Color.BLUE);
 
-                                        myButton.setOnClickListener(new buttonlisener2());
-                                        listabottoni.add(myButton);
+                                            myButton.setOnClickListener(new buttonlisener2());
+                                            listabottoni.add(myButton);
+                                        }
+                                        MainActivity m = (MainActivity) getActivity();
+                                        Objects.requireNonNull(m).fablistsetter(listforfab);
+                                        System.out.println(ll);
+                                        for (Button myButton : listabottoni
+                                        ) {
+                                            ll.addView(myButton);
+                                        }
+                                        listabottoni.clear();
+                                        chunckrequested = chunk;
+
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
                                     }
-                                    MainActivity m = (MainActivity) getActivity();
-                                    Objects.requireNonNull(m).fablistsetter(listforfab);
-                                    System.out.println(ll);
-                                    for (Button myButton : listabottoni
-                                    ) {
-                                        ll.addView(myButton);
-                                    }
-                                    listabottoni.clear();
-                                    chunckrequested = chunk;
-
-
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                    System.out.println("asd");
+                                    System.out.println();
                                 }
-                                System.out.println("asd");
-                                System.out.println();
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        chunk--;
-                        Toast.makeText(requireContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
-                        System.out.println(error.getMessage());
-                    }
-                });
+                            }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            chunk--;
 
-                stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                        10000,
-                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                            Toast.makeText(requireContext(), "Error on reaching server please retry later", Toast.LENGTH_SHORT).show();
+                            System.out.println(error.getMessage());
+                        }
+                    });
+
+                    stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                            10000,
+                            DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                            DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
 
 // Add the request to the RequestQueue.
-                queue.add(stringRequest);
+                    queue.add(stringRequest);
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 //            new savefile().run();
 
-            return null;
+            }
+
         }
 
 
@@ -418,7 +425,6 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         protected String doInBackground(String... sUrl) {
 
 
-
             URL url = null;
             try {
                 url = new URL(sUrl[0]);
@@ -427,7 +433,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
             }
             File file = new File(Environment.getExternalStorageDirectory() + File.separator + "anime" + File.separator + currentanime + File.separator + FilenameUtils.getName(Objects.requireNonNull(url).getPath()));
 
-            if (sUrl[0].contains("m3u8")|streaming) {
+            if (sUrl[0].contains("m3u8") | streaming) {
 
 
                 Intent intent = new Intent();
@@ -436,8 +442,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 startActivityForResult(intent, 10);
 
 
-            }
-            else if (!file.exists()) {
+            } else if (!file.exists()) {
                 Intent intent1 = new Intent("android.intent.action.MAIN");
                 intent1.setClassName("com.dv.adm", "com.dv.adm.AEditor");
                 intent1.putExtra("Referer", gb.get_references_by_entry(source));
@@ -474,8 +479,6 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
                 startActivityForResult(intent, 10);
 
 
-
-
             }
 
 
@@ -485,7 +488,7 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
 
     }
 
-    private class fileoject{
+    private class fileoject {
         private final File directory;
 
 
@@ -494,11 +497,12 @@ public class DetailsFragment extends Fragment implements ViewTreeObserver.OnScro
         }
     }
 
-
-
-
-
-
-
-
+    public static String decrypt(String en){
+        String key="xJGHsUXg|NIRd#WL&<Yy>h@kQ`19n0a)! .4-3pjCbB[7:O=;'*o^c8e{vqZ+\\li$?w}T~P\"MKV(_f5r/mtF]ASE,D2%uz6";
+        String dec="";
+        for(int i=0;i<en.length();i++){
+            dec+=key.charAt(((int)en.charAt(i))-32);
+        }
+        return dec;
+    }
 }

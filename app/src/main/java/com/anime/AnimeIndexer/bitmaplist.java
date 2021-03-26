@@ -15,7 +15,11 @@ public class bitmaplist implements Serializable {
     }
 
     public void add(String link, Bitmap bitm) {
-        Listabitmap.add(new bitmaplink(bitm, link));
+        try{
+        Listabitmap.add(new bitmaplink(bitm, link));}
+        catch(Exception e){
+            System.out.println("");
+        }
     }
 
     public Bitmap getbitbylink(String link) {

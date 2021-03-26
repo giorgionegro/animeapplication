@@ -207,7 +207,7 @@ public class FavoriteFragment extends Fragment {
         public button(@NonNull Context context, String imgurl, String tag,String source,String title) {
             super(context);
             super.setTag(tag);
-            super.setText(title);
+            super.setText(unescape(title));
             this.imgurl = imgurl;
             super.setOnClickListener(new buttonlisener(source));
             if (listabitm.getbitbylink(this.imgurl) == null) {
@@ -243,6 +243,8 @@ public class FavoriteFragment extends Fragment {
             }
 
             public void run() {
+                Looper.prepare();
+
                 final Bitmap x;
 
                 HttpURLConnection connection = null;
@@ -250,7 +252,6 @@ public class FavoriteFragment extends Fragment {
                     connection = (HttpURLConnection) new URL(imgurl).openConnection();
 
                 } catch (IOException e) {
-                    Looper.prepare();
                     Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                     System.err.println(e.getMessage());
@@ -383,6 +384,28 @@ public class FavoriteFragment extends Fragment {
 
             //  onClickBtn(view);
         }
+    }
+    private String unescape(String s) {
+        int i=0, len=s.length();
+        char c;
+        StringBuffer sb = new StringBuffer(len);
+        while (i < len) {
+            c = s.charAt(i++);
+            if (c == '\\') {
+                if (i < len) {
+                    c = s.charAt(i++);
+                    if (c == 'u') {
+                        c = (char) Integer.parseInt(s.substring(i, i+4), 16);
+                        i += 4;
+                    }
+                    if(c== '"'){
+                        c= '\'';
+                    }
+                }
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 
 }
